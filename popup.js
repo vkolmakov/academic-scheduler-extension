@@ -10,10 +10,38 @@ main = function() {
         date = $('#inputDate').val();
         $('#inputTutor').empty();
         $('#inputTime').val('');
+        $('#schedule-button').addClass('disabled');
         chrome.runtime.sendMessage({method: 'onDateUpdate', details: date});
     });
 
+    $('#inputTutor').change(function(){
+        if(!isTutorSelected()){
+            $('.status').text('Select a tutor');
+            $('#schedule-button').addClass('disabled');
+            return true;
+        }
+
+    });
+
+    $('#inputStudent, #inputPhone').keyup(function(){
+        if(!isTutorSelected()){
+            $('.status').text('Select a tutor');
+            $('#schedule-button').addClass('disabled');
+            return true;
+        }
+
+        if(isStudentInformationValid() && isTutorSelected){
+            $('.status').text('Phone number and student name are valid');
+            $('#schedule-button').removeClass('disabled');
+        }
+        else {
+            $('.status').text('Enter a valid phone number and student name');
+            $('#schedule-button').addClass('disabled');
+        }
+    });
+
     $('#inputTime, #inputCourse').change(function(){
+        $('#schedule-button').addClass('disabled');
         date = $('#inputDate').val();
         time = $('#inputTime').val();
         course = $('#inputCourse').val();
@@ -29,6 +57,15 @@ main = function() {
             }
             else
                 $('#inputTutor').clear();
+        if(!isTutorSelected()){
+            $('.status').text('There are no tutors available at given time');
+            $('#schedule-button').addClass('disabled');
+            return true;
+            }
+        else if(isStudentInformationValid() && isTutorSelected){
+            $('.status').text('Phone number and student name are valid');
+            $('#schedule-button').removeClass('disabled');
+            }
         });
    });
 
@@ -50,6 +87,44 @@ main = function() {
     });
 
 };
+
+function isTutorSelected(){
+    var tutorName = $('#inputTutor').val();
+    if(tutorName)
+        return true;
+    else
+        return false;
+}
+
+function isStudentInformationValid(){
+    var studentName = $('#inputStudent').val();
+    var phoneNumber = $('#inputPhone').val();
+
+
+    if(isValidPhoneNumber(phoneNumber) && isValidName(studentName))
+        return true;
+    else
+        return false;
+
+}
+
+function isValidPhoneNumber(phoneNumber){
+    var phoneNumberRegex = /^(\()?(\d{3})(\))?[-\.\s]?(\d{3})[-\.\s]?(\d{4})$/;
+    mo = phoneNumberRegex.exec(phoneNumber);
+    if(mo)
+        return true;
+    else
+        return false;
+}
+
+function isValidName(name){
+    var nameRegex = /([A-Z]){1}.*\s([A-Z]){1}.*/;
+    mo = nameRegex.exec(name);
+    if(mo)
+        return true;
+    else
+        return false;
+}
 
 function getInputData(){
     // Returns contents of forms as a list

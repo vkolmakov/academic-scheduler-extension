@@ -24,6 +24,7 @@ function setScheduledAppointmentsList(array){
     scheduledAppointments = array;
 }
 
+
 chrome.tabs.onUpdated.addListener(function(tab) {
     chrome.tabs.executeScript(tab, {file: "content_script.js"}); // every time url is updated run content script again in order to get a new date
     return true;
