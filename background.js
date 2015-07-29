@@ -30,18 +30,26 @@ chrome.tabs.onUpdated.addListener(function(tab) {
     });
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
+    var startDate, endDate;
     if(message.method == 'getDate') {
         dateText = message.dateText;
         return true;
     }
     else if(message.method == 'popupClick') {
         datePickerDate = convertToDatepickerDate(dateText);
-        // Set startDate and endDate +/- 1 week around set date in order to get relevant list of scheduled appointments
-        var startDate = addDaysToDateString(datePickerDate, -7);
-        var endDate = addDaysToDateString(datePickerDate, 7);
+        // Set startDate and endDate + 1 day after set date in order to get relevant list of scheduled appointments
+        startDate = addDaysToDateString(datePickerDate, 0);
+        endDate = addDaysToDateString(datePickerDate, 1);
         getScheduledAppointments(startDate, endDate);
 
         sendResponse(datePickerDate);
+    }
+    else if(message.method == 'onDateUpdate') {
+        datePickerDate = message.details;
+
+        startDate = addDaysToDateString(datePickerDate, 0);
+        endDate = addDaysToDateString(datePickerDate, 1);
+        getScheduledAppointments(startDate, endDate);
     }
     else if(message.method == 'schedule') {
         scheduleAppointment(message.details);

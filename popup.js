@@ -1,10 +1,19 @@
 main = function() {
+    $('#schedule-button').addClass('disabled');
+
     $('#schedule-button').click(function(){
         var input = getInputData();
         chrome.runtime.sendMessage({method: 'schedule', details: input});
     });
 
-    $('#inputTime, #inputDate, #inputCourse').change(function(){
+    $('#inputDate').change(function(){
+        date = $('#inputDate').val();
+        $('#inputTutor').empty();
+        $('#inputTime').val('');
+        chrome.runtime.sendMessage({method: 'onDateUpdate', details: date});
+    });
+
+    $('#inputTime, #inputCourse').change(function(){
         date = $('#inputDate').val();
         time = $('#inputTime').val();
         course = $('#inputCourse').val();
