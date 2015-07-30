@@ -24,6 +24,41 @@ function setScheduledAppointmentsList(array){
     scheduledAppointments = array;
 }
 
+function scheduleAppointment(details) {
+    var appointmentText = getAppointmentText(details[2], details[4], details[3]); // 2, 4 ,3 correspond to courseName, studentName, tutorName
+    var YearMonthDay = getYearMonthDay(details[0]);
+    var startHour = timeEntries[details[1]];
+    var endHour = (parseInt(startHour) + 1).toString();
+    var startTime = getDateTimeString(new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]), startHour);
+    var endTime = getDateTimeString(new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]), endHour);
+
+    var eventData = {
+                    "summary": appointmentText,
+                    "start": {
+                        "dateTime": startTime
+                    },
+                    "end": {
+                        "dateTime": endTime
+                    },
+                    "colorId": courseColorID[courseNames[details[2]]],
+                    "description" : details[5]
+                };
+
+    chrome.identity.getAuthToken({ 'interactive': true }, function(token) {
+        var xhr = new XMLHttpRequest();
+        var requestUrl = 'https://www.googleapis.com/calendar/v3/calendars/primary/events/';
+        xhr.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                // TODO: send message to display in status
+                return true;
+            }
+        };
+        xhr.open('POST', requestUrl , true);
+        xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify(eventData));
+    });
+}
 
 chrome.tabs.onUpdated.addListener(function(tab) {
     chrome.tabs.executeScript(tab, {file: "content_script.js"}); // every time url is updated run content script again in order to get a new date
@@ -69,13 +104,6 @@ function addDaysToDateString(dateString, days){
 
     dateObject.setDate(dateObject.getDate() + days);
     return dateObject.toISOString().substring(0,10) + 'T00:00:00-05:00';
-}
-
-function scheduleAppointment(details){
-    var appointmentText = getAppointmentText(details[2], details[4], details[3]); // 2, 4 ,3 correspond to courseName, studentName, tutorName
-    // TODO: Do something
-    // var newURL = "https://www.google.com/calendar/render?action=TEMPLATE&text=" + appointmentText + '&dates=' + startEnd;
-    chrome.tabs.create({ url: newURL });
 }
 
 function getAvailableTutors(popupDate, popupTime, popupCourse){
@@ -172,7 +200,7 @@ function getYearMonthDay(popupDate){
 function getAppointmentText(courseName, studentName, tutorName) {
     // Takes appointment details and returns appointment text
     var courseNumber = courseNames[courseName];
-    var appointmentText = studentName + " (" + courseNumber + ") " + "/w " + tutorName;
+    var appointmentText = studentName + " (" + courseNumber + ") " + "w/" + tutorName;
     return appointmentText;
 }
 
@@ -215,6 +243,19 @@ var dayNames = new Array(
   'Friday',
   'Saturday'
 );
+
+var courseColorID = {'99': '10',
+                '143': '10',
+                '204': '10',
+                '207': '10',
+                '118': '8',
+                '125': '9',
+                '144': '4',
+                '146': '2',
+                '208': '5',
+                '209': '6',
+                '210': '3',
+                '212': '7'};
 
 var timeEntries = {'9:00am': '9',
                '10:00am': '10',
