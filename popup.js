@@ -1,5 +1,5 @@
 main = function() {
-    $('#schedule-button').addClass('disabled');
+    $('#schedule-button').prop('disabled', true);
 
     $('#schedule-button').click(function(){
         var input = getInputData();
@@ -10,14 +10,14 @@ main = function() {
         date = $('#inputDate').val();
         $('#inputTutor').empty();
         $('#inputTime').val('');
-        $('#schedule-button').addClass('disabled');
+        $('#schedule-button').prop('disabled', true);
         chrome.runtime.sendMessage({method: 'onDateUpdate', details: date});
     });
 
     $('#inputTutor').change(function(){
         if(!isTutorSelected()){
             $('.status').text('Select a tutor');
-            $('#schedule-button').addClass('disabled');
+            $('#schedule-button').prop('disabled', true);
             return true;
         }
 
@@ -26,22 +26,22 @@ main = function() {
     $('#inputStudent, #inputPhone').keyup(function(){
         if(!isTutorSelected()){
             $('.status').text('Select a tutor');
-            $('#schedule-button').addClass('disabled');
+            $('#schedule-button').prop('disabled', true);
             return true;
         }
 
         if(isStudentInformationValid() && isTutorSelected){
             $('.status').text('Phone number and student name are valid');
-            $('#schedule-button').removeClass('disabled');
+            $('#schedule-button').prop('disabled', false);
         }
         else {
             $('.status').text('Enter a valid phone number and student name');
-            $('#schedule-button').addClass('disabled');
+            $('#schedule-button').prop('disabled', true);
         }
     });
 
     $('#inputTime, #inputCourse').change(function(){
-        $('#schedule-button').addClass('disabled');
+        $('#schedule-button').prop('disabled', true);
         date = $('#inputDate').val();
         time = $('#inputTime').val();
         course = $('#inputCourse').val();
@@ -59,12 +59,12 @@ main = function() {
                 $('#inputTutor').clear();
         if(!isTutorSelected()){
             $('.status').text('There are no tutors available at given time');
-            $('#schedule-button').addClass('disabled');
+            $('#schedule-button').prop('disabled', true);
             return true;
             }
         else if(isStudentInformationValid() && isTutorSelected){
             $('.status').text('Phone number and student name are valid');
-            $('#schedule-button').removeClass('disabled');
+            $('#schedule-button').prop('disabled', false);
             }
         });
    });
