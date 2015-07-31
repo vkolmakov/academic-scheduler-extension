@@ -1,5 +1,4 @@
 main = function() {
-    $('#schedule-button').prop('disabled', true);
 
     $('#schedule-button').click(function(){
         var input = getInputData();
@@ -7,6 +6,10 @@ main = function() {
         $('.status').text('Trying to schedule an appointment...');
         chrome.runtime.sendMessage({method: 'schedule', details: input});
         changeStatus();
+    });
+
+    $('#clear-button').click(function(){
+        clearForms();
     });
 
     $('#inputDate').change(function(){
@@ -29,7 +32,7 @@ main = function() {
 
     $('#inputStudent, #inputPhone').keyup(function(){
         if(!isTutorSelected()){
-            $('.status').text('Select a tutor');
+            $('.status').text('There are no tutors available at given time');
             $('.status').addClass('status-error');
             $('#schedule-button').prop('disabled', true);
             return true;
@@ -61,9 +64,12 @@ main = function() {
                     if (tutorList[idx] != '0'){
                         $('<option/>').val(tutorList[idx]).html(tutorList[idx]).appendTo('#inputTutor');
                     }
+                $('.status').text('Enter student name and phone number');
+                $('.status').addClass('status-error');
             }
             else
                 $('#inputTutor').clear();
+
         if(!isTutorSelected()){
             $('.status').text('There are no tutors available at given time');
             $('.status').addClass('status-error');
@@ -78,23 +84,23 @@ main = function() {
         });
    });
 
-    chrome.runtime.sendMessage({method: 'popupClick'}, function(response){
-        var date = response;
-        $('#inputDate').attr("value", date);
-    });
+   // Populating time entries from background page
+   chrome.runtime.getBackgroundPage(function (backgroundPage) {
+       var timeEntries = backgroundPage.timeEntries;
+       var courses = backgroundPage.settings.courseNames;
+       for(var key in timeEntries) {
+           $('<option/>').val(key).html(key).appendTo('#inputTime');
+       }
+       for(var course in courses) {
+           $('<option/>').val(course).html(course).appendTo('#inputCourse');
+       }
+       clearForms();
+   });
 
-    // Populating time entries from background page
-    chrome.runtime.getBackgroundPage(function (backgroundPage) {
-        var timeEntries = backgroundPage.timeEntries;
-        var courses = backgroundPage.settings.courseNames;
-        for(var key in timeEntries) {
-            $('<option/>').val(key).html(key).appendTo('#inputTime');
-        }
-        for(var course in courses) {
-            $('<option/>').val(course).html(course).appendTo('#inputCourse');
-        }
-    });
-
+   chrome.runtime.sendMessage({method: 'popupClick'}, function(response){
+       var date = response;
+       $('#inputDate').attr("value", date);
+   });
 };
 
 function changeStatus() {
@@ -166,6 +172,17 @@ function getInputData(){
     var phoneNumber = $('#inputPhone').val();
 
     return [date, time,  course, tutorName, studentName, phoneNumber];
+}
+
+function clearForms(){
+    $('#schedule-button').prop('disabled', true);
+    $('input').each(function(index, value){
+        if($(this).val() != $('#inputDate').val())
+            $(this).val('');
+    });
+    $('select').each(function(index, value){
+        $(this).val('');
+    });
 }
 
 $(document).ready(main);

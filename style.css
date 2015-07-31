@@ -26,5 +26,10 @@ label {
 }
 
 .status-error {
-    color: #DB6450
+    color: #DB6450;
+}
+
+.btn {
+    margin-bottom: 15px;
+    margin-top: 10px;
 }
