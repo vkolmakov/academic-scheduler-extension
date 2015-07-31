@@ -20,6 +20,7 @@ main = function() {
     $('#inputTutor').change(function(){
         if(!isTutorSelected()){
             $('.status').text('Select a tutor');
+            $('.status').addClass('status-error');
             $('#schedule-button').prop('disabled', true);
             return true;
         }
@@ -29,16 +30,19 @@ main = function() {
     $('#inputStudent, #inputPhone').keyup(function(){
         if(!isTutorSelected()){
             $('.status').text('Select a tutor');
+            $('.status').addClass('status-error');
             $('#schedule-button').prop('disabled', true);
             return true;
         }
 
         if(isStudentInformationValid() && isTutorSelected){
             $('.status').text('Phone number and student name are valid');
+            $('.status').removeClass('status-error');
             $('#schedule-button').prop('disabled', false);
         }
         else {
             $('.status').text('Enter a valid phone number and student name');
+            $('.status').addClass('status-error');
             $('#schedule-button').prop('disabled', true);
         }
     });
@@ -62,11 +66,13 @@ main = function() {
                 $('#inputTutor').clear();
         if(!isTutorSelected()){
             $('.status').text('There are no tutors available at given time');
+            $('.status').addClass('status-error');
             $('#schedule-button').prop('disabled', true);
             return true;
             }
         else if(isStudentInformationValid() && isTutorSelected){
             $('.status').text('Phone number and student name are valid');
+            $('.status').removeClass('status-error');
             $('#schedule-button').prop('disabled', false);
             }
         });
@@ -94,13 +100,19 @@ main = function() {
 function changeStatus() {
     setTimeout(function(){
         chrome.runtime.sendMessage({method: 'getStatus'}, function(response){
-            if(response === true)
+            if(response === true){
                 $('.status').text('Appointment has been scheduled');
-            else if(response === false)
+                $('.status').removeClass('status-error');
+            }
+            else if(response === false){
                 $('.status').text('Appointment was NOT scheduled');
-            else
+                $('.status').addClass('status-error');
+            }
+            else{
                 // Case where XHR request was not completed in 2.5 seconds
-                $('.status').text('Reload the calendar and double-check the appointment');
+                $('.status').text('Reload the calendar and double-check the appointment status');
+                $('.status').addClass('status-error');
+            }
         });
 
     }, 2500);

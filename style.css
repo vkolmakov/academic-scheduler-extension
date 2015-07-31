@@ -1,4 +1,30 @@
 body {
   width: 550px;
   height: 250px;
+  line-height: 2.25;
+
+}
+label {
+    margin-bottom: auto;
+}
+
+.col-xs-3 {
+    width: 20%;
+}
+
+.col-xs-9 {
+    width: 80%;
+}
+
+.status-div {
+    padding: 14px 10px;
+}
+
+.status {
+    font-weight: bolder;
+    color: #337AB7;
+}
+
+.status-error {
+    color: #DB6450
 }

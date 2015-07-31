@@ -5,7 +5,7 @@ var settings;
 
 // Grabbing the settings
 var xhr = new XMLHttpRequest();
-var requestUrl = 'https://api.myjson.com/bins/28euu';
+var requestUrl = 'https://api.myjson.com/bins/28euu'; // TODO: Make requestUrl editable
 xhr.onreadystatechange = function(){
     if(this.readyState == 4 && this.status == 200){
         var settings = JSON.parse(this.responseText);
