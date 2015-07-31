@@ -3,7 +3,11 @@ main = function() {
 
     $('#schedule-button').click(function(){
         var input = getInputData();
+        $('#schedule-button').prop('disabled', true);
+        $('.status').text('Trying to schedule an appointment...');
         chrome.runtime.sendMessage({method: 'schedule', details: input});
+        changeStatus();
+        // TODO: Do something to wait and grab status + disable button
     });
 
     $('#inputDate').change(function(){
@@ -87,6 +91,25 @@ main = function() {
     });
 
 };
+
+function changeStatus() {
+    console.log('inside the function');
+    setTimeout(function(){
+        console.log('inside the timeout');
+        chrome.runtime.sendMessage({method: 'getStatus'}, function(response){
+            console.log('message sent');
+            console.log(response);
+            if(response === true)
+                $('.status').text('Appointment has been scheduled');
+            else if(response === false)
+                $('.status').text('Appointment was NOT scheduled');
+            else
+                // Case where XHR request was not completed in 2.5 seconds
+                $('.status').text('Reload the calendar and double-check the appointment');
+        });
+
+    }, 2500);
+}
 
 function isTutorSelected(){
     var tutorName = $('#inputTutor').val();

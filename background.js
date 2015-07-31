@@ -1,4 +1,4 @@
-var dateText, datePickerDate, details, scheduledAppointments;
+var dateText, datePickerDate, details, scheduledAppointments, isScheduled;
 var popupData = [];
 var scheduledAppointmentRegex = /(.*\s.*)\s\((.*)\)\W{0,3}?\w{0,3}?\W{0,3}?\sw\/(\w*\s?\w{1}?)\W{0,3}?\w{0,3}?\W{0,3}?(\sNOTE:(.*))?/;
 
@@ -49,15 +49,19 @@ function scheduleAppointment(details) {
         var requestUrl = 'https://www.googleapis.com/calendar/v3/calendars/primary/events/';
         xhr.onreadystatechange = function() {
             if (this.readyState == 4 && this.status == 200) {
-                // TODO: send message to display in status
+                setStatus(true);
                 return true;
             }
+            else setStatus(false);
         };
         xhr.open('POST', requestUrl , true);
         xhr.setRequestHeader('Authorization', 'Bearer ' + token);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.send(JSON.stringify(eventData));
     });
+}
+function setStatus(status){
+    isScheduled = status;
 }
 
 chrome.tabs.onUpdated.addListener(function(tab) {
@@ -94,6 +98,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
     else if(message.method == 'getTutorList') {
         var tutorList = getAvailableTutors(message.popupDate, message.popupTime, message.popupCourse);
         sendResponse(tutorList);
+    }
+    else if(message.method == 'getStatus') {
+        sendResponse(isScheduled);
     }
 });
 
