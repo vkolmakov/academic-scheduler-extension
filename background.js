@@ -25,7 +25,8 @@ function setScheduledAppointmentsList(array){
 }
 
 function scheduleAppointment(details) {
-    var appointmentText = getAppointmentText(details[2], details[4], details[3]); // 2, 4 ,3 correspond to courseName, studentName, tutorName
+    // details = [date, time,  course, tutorName, studentName, phoneNumber]
+    var appointmentText = getAppointmentText(details[2], details[4], details[3]);
     var YearMonthDay = getYearMonthDay(details[0]);
     var startHour = timeEntries[details[1]];
     var endHour = (parseInt(startHour) + 1).toString();
@@ -41,7 +42,7 @@ function scheduleAppointment(details) {
                         "dateTime": endTime
                     },
                     "colorId": courseColorID[courseNames[details[2]]],
-                    "description" : details[5]
+                    "description" : rewritePhoneNumber(details[5])
                 };
 
     chrome.identity.getAuthToken({ 'interactive': true }, function(token) {
@@ -220,6 +221,14 @@ function convertToDatepickerDate(dateText) {
     year = mo[3];
     var datePickerDate = year + '-' + month + '-' + day;
     return datePickerDate;
+}
+
+function rewritePhoneNumber(phoneNumber){
+    // Returns given phoneNumber in format (XXX)-XXX-XXXX
+    phoneNumberRegex = /^\(?(\d{3})\)?[-\.\s]?(\d{3})[-\.\s]?(\d{4})$/;
+
+    updatedPhoneNumber = phoneNumber.replace(phoneNumberRegex, '($1)-$2-$3');
+    return updatedPhoneNumber;
 }
 
 function getMonth(month) {

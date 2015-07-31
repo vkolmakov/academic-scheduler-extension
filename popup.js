@@ -7,7 +7,6 @@ main = function() {
         $('.status').text('Trying to schedule an appointment...');
         chrome.runtime.sendMessage({method: 'schedule', details: input});
         changeStatus();
-        // TODO: Do something to wait and grab status + disable button
     });
 
     $('#inputDate').change(function(){
