@@ -80,7 +80,7 @@ main = function() {
     // Populating time entries from background page
     chrome.runtime.getBackgroundPage(function (backgroundPage) {
         var timeEntries = backgroundPage.timeEntries;
-        var courses = backgroundPage.courseNames;
+        var courses = backgroundPage.settings.courseNames;
         for(var key in timeEntries) {
             $('<option/>').val(key).html(key).appendTo('#inputTime');
         }
@@ -92,12 +92,8 @@ main = function() {
 };
 
 function changeStatus() {
-    console.log('inside the function');
     setTimeout(function(){
-        console.log('inside the timeout');
         chrome.runtime.sendMessage({method: 'getStatus'}, function(response){
-            console.log('message sent');
-            console.log(response);
             if(response === true)
                 $('.status').text('Appointment has been scheduled');
             else if(response === false)

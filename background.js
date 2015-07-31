@@ -1,6 +1,24 @@
 var dateText, datePickerDate, details, scheduledAppointments, isScheduled, tutorList;
 var popupData = [];
 var scheduledAppointmentRegex = /(.*\s.*)\s\((.*)\)\W{0,3}?\w{0,3}?\W{0,3}?\sw\/(\w*\s?\w{1}?)\W{0,3}?\w{0,3}?\W{0,3}?(\sNOTE:(.*))?/;
+var settings;
+
+// Grabbing the settings
+var xhr = new XMLHttpRequest();
+var requestUrl = 'https://api.myjson.com/bins/28euu';
+xhr.onreadystatechange = function(){
+    if(this.readyState == 4 && this.status == 200){
+        var settings = JSON.parse(this.responseText);
+        setSettings(settings);
+    }
+};
+xhr.open('GET', requestUrl, true);
+xhr.send();
+
+function setSettings(new_settings){
+    console.log('Settings received!');
+    settings = new_settings;
+}
 
 function getScheduledAppointments(startTime, endTime) {
     var scheduledAppointments = [];
@@ -28,7 +46,6 @@ function scheduleAppointment(details) {
     // details = [date, time,  course, tutorName, studentName, phoneNumber]
     if(details[3] == 'I\'m feeling lucky!')
         details[3] = selectRandomTutor();
-    console.log(tutorList);
     var appointmentText = getAppointmentText(details[2], details[4], details[3]);
     var YearMonthDay = getYearMonthDay(details[0]);
     var startHour = timeEntries[details[1]];
@@ -44,7 +61,7 @@ function scheduleAppointment(details) {
                     "end": {
                         "dateTime": endTime
                     },
-                    "colorId": courseColorID[courseNames[details[2]]],
+                    "colorId": courseColorID[settings.courseNames[details[2]]],
                     "description" : rewritePhoneNumber(details[5])
                 };
 
@@ -132,8 +149,7 @@ function getAvailableTutors(popupDate, popupTime, popupCourse){
     var dateObject = new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]);
 
     var weekDay = dayNames[dateObject.getDay()];
-
-    tutorList = filterTutorList(schedule[weekDay][time], popupCourse, dateObject, time);
+    tutorList = filterTutorList(settings.schedule[weekDay][time], popupCourse, dateObject, time);
 
     return tutorList;
 }
@@ -186,11 +202,11 @@ function getTutorsFromSummaries(summaries){
 }
 
 function isAbleToTuror(tutorName, course){
-    courseCode = courseNames[course];
+    courseCode = settings.courseNames[course];
     if(tutorName == '0')
         return false;
     try{
-        if(contains(tutorCourse[tutorName], courseCode) || contains(tutorCourse.Everyone, courseCode))
+        if(contains(settings.tutorCourse[tutorName], courseCode) || contains(settings.tutorCourse.Everyone, courseCode))
             return true;
     }
     catch (error){
@@ -217,7 +233,7 @@ function getYearMonthDay(popupDate){
 }
 function getAppointmentText(courseName, studentName, tutorName) {
     // Takes appointment details and returns appointment text
-    var courseNumber = courseNames[courseName];
+    var courseNumber = settings.courseNames[courseName];
     var appointmentText = studentName + " (" + courseNumber + ") " + "w/" + tutorName;
     return appointmentText;
 }
