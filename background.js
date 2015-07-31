@@ -1,4 +1,4 @@
-var dateText, datePickerDate, details, scheduledAppointments, isScheduled;
+var dateText, datePickerDate, details, scheduledAppointments, isScheduled, tutorList;
 var popupData = [];
 var scheduledAppointmentRegex = /(.*\s.*)\s\((.*)\)\W{0,3}?\w{0,3}?\W{0,3}?\sw\/(\w*\s?\w{1}?)\W{0,3}?\w{0,3}?\W{0,3}?(\sNOTE:(.*))?/;
 
@@ -26,6 +26,9 @@ function setScheduledAppointmentsList(array){
 
 function scheduleAppointment(details) {
     // details = [date, time,  course, tutorName, studentName, phoneNumber]
+    if(details[3] == 'I\'m feeling lucky!')
+        details[3] = selectRandomTutor();
+    console.log(tutorList);
     var appointmentText = getAppointmentText(details[2], details[4], details[3]);
     var YearMonthDay = getYearMonthDay(details[0]);
     var startHour = timeEntries[details[1]];
@@ -97,7 +100,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
         return true;
     }
     else if(message.method == 'getTutorList') {
-        var tutorList = getAvailableTutors(message.popupDate, message.popupTime, message.popupCourse);
+        tutorList = [];
+        tutorList = getAvailableTutors(message.popupDate, message.popupTime, message.popupCourse);
         sendResponse(tutorList);
     }
     else if(message.method == 'getStatus') {
@@ -106,6 +110,12 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
 });
 
 /* Helper functions */
+function selectRandomTutor(){
+    tutorList.splice(tutorList.indexOf('I\'m feeling lucky!'), 1);
+    var randomTutor = tutorList[Math.floor(Math.random() * tutorList.length)];
+    return randomTutor;
+}
+
 function addDaysToDateString(dateString, days){
     var YearMonthDay = getYearMonthDay(dateString);
     var dateObject = new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]);
