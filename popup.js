@@ -1,14 +1,15 @@
 main = function() {
-
     $('#schedule-button').click(function(){
         var input = getInputData();
         $('#schedule-button').prop('disabled', true);
-        $('.status').text('Trying to schedule an appointment...');
+        displayMessage(statusMessages.scheduledInProccess);
+        disableInputs();
         chrome.runtime.sendMessage({method: 'schedule', details: input});
         changeStatus();
     });
 
     $('#clear-button').click(function(){
+        chrome.runtime.sendMessage({method: 'onDateUpdate', details: date}); // Refresging scheduled appointments
         clearForms();
     });
 
@@ -17,71 +18,36 @@ main = function() {
         $('#inputTutor').empty();
         $('#inputTime').val('');
         $('#schedule-button').prop('disabled', true);
+        displayErrorMessage(statusMessages.selectTime);
         chrome.runtime.sendMessage({method: 'onDateUpdate', details: date});
     });
 
     $('#inputTutor').change(function(){
         if(!isTutorSelected()){
-            $('.status').text('Select a tutor');
-            $('.status').addClass('status-error');
-            $('#schedule-button').prop('disabled', true);
+            displayErrorMessage(statusMessages.noTutorsAvailable);
             return true;
         }
-
     });
 
     $('#inputStudent, #inputPhone').keyup(function(){
         if(!isTutorSelected()){
-            $('.status').text('There are no tutors available at given time');
-            $('.status').addClass('status-error');
-            $('#schedule-button').prop('disabled', true);
+            displayErrorMessage(statusMessages.noTutorsAvailable);
             return true;
         }
-
         if(isStudentInformationValid() && isTutorSelected){
-            $('.status').text('Phone number and student name are valid');
-            $('.status').removeClass('status-error');
+            displayMessage(statusMessages.readyToSchedule);
             $('#schedule-button').prop('disabled', false);
         }
         else {
-            $('.status').text('Enter a valid phone number and student name');
-            $('.status').addClass('status-error');
-            $('#schedule-button').prop('disabled', true);
+            displayErrorMessage(statusMessages.invalidInput);
         }
     });
 
     $('#inputTime, #inputCourse').change(function(){
-        $('#schedule-button').prop('disabled', true);
         date = $('#inputDate').val();
         time = $('#inputTime').val();
         course = $('#inputCourse').val();
-        chrome.runtime.sendMessage({method: 'getTutorList', popupDate: date, popupTime: time, popupCourse: course}, function(response){
-            // On update of inputTime update list of available tutors in popup
-            $('#inputTutor').empty();
-            if(response) {
-                var tutorList = response;
-                for(var idx=0; idx < tutorList.length; idx++)
-                    if (tutorList[idx] != '0'){
-                        $('<option/>').val(tutorList[idx]).html(tutorList[idx]).appendTo('#inputTutor');
-                    }
-                $('.status').text('Enter student name and phone number');
-                $('.status').addClass('status-error');
-            }
-            else
-                $('#inputTutor').clear();
-
-        if(!isTutorSelected()){
-            $('.status').text('There are no tutors available at given time');
-            $('.status').addClass('status-error');
-            $('#schedule-button').prop('disabled', true);
-            return true;
-            }
-        else if(isStudentInformationValid() && isTutorSelected){
-            $('.status').text('Phone number and student name are valid');
-            $('.status').removeClass('status-error');
-            $('#schedule-button').prop('disabled', false);
-            }
-        });
+        updateTutorList(date, time, course);
    });
 
    // Populating time entries from background page
@@ -101,35 +67,75 @@ main = function() {
        var date = response;
        $('#inputDate').attr("value", date);
    });
+   console.log($('#inputTime').val());
+   console.log($('#inputCourse').val());
 };
 
 function changeStatus() {
     setTimeout(function(){
         chrome.runtime.sendMessage({method: 'getStatus'}, function(response){
             if(response === true){
-                $('.status').text('Appointment has been scheduled');
-                $('.status').removeClass('status-error');
+                displayMessage(statusMessages.scheduledSuccess);
             }
             else if(response === false){
-                $('.status').text('Appointment was NOT scheduled');
-                $('.status').addClass('status-error');
+                displayErrorMessage(statusMessages.scheduledFailure);
             }
             else{
                 // Case where XHR request was not completed in 2.5 seconds
-                $('.status').text('Reload the calendar and double-check the appointment status');
-                $('.status').addClass('status-error');
+                displayErrorMessage(statusMessages.scheduledUndetermined);
             }
         });
-
     }, 2500);
+}
+
+function displayErrorMessage(message){
+    $('.status').text(message);
+    $('#schedule-button').prop('disabled', true);
+    $('.status').addClass('status-error');
+}
+function displayMessage(message){
+    $('.status').text(message);
+    $('.status').removeClass('status-error');
+}
+
+function updateTutorList(date, time, course){
+    if(time === null) {
+        displayErrorMessage(statusMessages.selectTime);
+        return true;
+    }
+    else if(course === null) {
+        displayErrorMessage(statusMessages.selectCourse);
+        return true;
+    }
+    chrome.runtime.sendMessage({method: 'getTutorList', popupDate: date, popupTime: time, popupCourse: course}, function(response){
+        // On update of inputTime update list of available tutors in popup
+        $('#inputTutor').empty();
+        if(response) {
+            var tutorList = response;
+            for(var idx=0; idx < tutorList.length; idx++)
+                if (tutorList[idx] != '0'){
+                    $('<option/>').val(tutorList[idx]).html(tutorList[idx]).appendTo('#inputTutor');
+                }
+            if(!isTutorSelected())
+                displayErrorMessage(statusMessages.noTutorsAvailable);
+            else if(!isStudentInformationValid())
+                displayErrorMessage(statusMessages.invalidInput);
+            else {
+                displayMessage(statusMessages.readyToSchedule);
+                $('#schedule-button').prop('disabled', false);
+            }
+        }
+        else
+            $('#inputTutor').empty();
+    });
 }
 
 function isTutorSelected(){
     var tutorName = $('#inputTutor').val();
-    if(tutorName)
-        return true;
-    else
+    if(tutorName === null)
         return false;
+    else
+        return true;
 }
 
 function isStudentInformationValid(){
@@ -173,8 +179,28 @@ function getInputData(){
 
     return [date, time,  course, tutorName, studentName, phoneNumber];
 }
+function disableInputs(){
+    $('#schedule-button').prop('disabled', true);
+    $('input').each(function(index, value){
+        $(this).prop('disabled', true);
+    });
+    $('select').each(function(index, value){
+        $(this).prop('disabled', true);
+    });
+}
+function enableInputs(){
+    $('#schedule-button').prop('disabled', true);
+    $('input').each(function(index, value){
+        $(this).prop('disabled', false);
+    });
+    $('select').each(function(index, value){
+        $(this).prop('disabled', false);
+    });
+}
 
 function clearForms(){
+    displayMessage(statusMessages.defaultMessage);
+    enableInputs();
     $('#schedule-button').prop('disabled', true);
     $('input').each(function(index, value){
         if($(this).val() != $('#inputDate').val())
@@ -184,5 +210,18 @@ function clearForms(){
         $(this).val('');
     });
 }
+
+var statusMessages = {
+    'noTutorsAvailable': 'There are no tutors available at given time',
+    'defaultMessage': 'Scheduling extension, select date/time/course',
+    'readyToSchedule': 'Phone number and student name are valid, appointment may be scheduled',
+    'scheduledInProccess': 'Trying to schedule an appointment...',
+    'invalidInput': 'Enter a valid phone number and student name',
+    'scheduledSuccess': 'Appointment has been scheduled, click Clear to schedule another',
+    'scheduledFailure': 'Appointment was NOT scheduled',
+    'scheduledUndetermined': 'Reload the calendar and double-check the appointment status',
+    'selectTime': 'Select time',
+    'selectCourse': 'Select course'
+};
 
 $(document).ready(main);
