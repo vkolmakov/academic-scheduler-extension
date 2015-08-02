@@ -67,12 +67,12 @@ main = function() {
        var date = response;
        $('#inputDate').attr("value", date);
    });
-   console.log($('#inputTime').val());
-   console.log($('#inputCourse').val());
 };
 
 function changeStatus() {
+    var printDots = setInterval(animateDots, 833);
     setTimeout(function(){
+        clearInterval(printDots);
         chrome.runtime.sendMessage({method: 'getStatus'}, function(response){
             if(response === true){
                 displayMessage(statusMessages.scheduledSuccess);
@@ -86,6 +86,9 @@ function changeStatus() {
             }
         });
     }, 2500);
+}
+function animateDots(dots) {
+    $('.status').append('.');
 }
 
 function displayErrorMessage(message){
@@ -125,9 +128,12 @@ function updateTutorList(date, time, course){
                 $('#schedule-button').prop('disabled', false);
             }
         }
-        else
+        else {
             $('#inputTutor').empty();
+        }
     });
+    if(!isTutorSelected())
+        displayErrorMessage(statusMessages.noTutorsAvailable);
 }
 
 function isTutorSelected(){
@@ -215,9 +221,9 @@ var statusMessages = {
     'noTutorsAvailable': 'There are no tutors available at given time',
     'defaultMessage': 'Scheduling extension, select date/time/course',
     'readyToSchedule': 'Phone number and student name are valid, appointment may be scheduled',
-    'scheduledInProccess': 'Trying to schedule an appointment...',
+    'scheduledInProccess': 'Trying to schedule an appointment',
     'invalidInput': 'Enter a valid phone number and student name',
-    'scheduledSuccess': 'Appointment has been scheduled, click Clear to schedule another',
+    'scheduledSuccess': 'Appointment has been scheduled, click Clear to schedule one more',
     'scheduledFailure': 'Appointment was NOT scheduled',
     'scheduledUndetermined': 'Reload the calendar and double-check the appointment status',
     'selectTime': 'Select time',
