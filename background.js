@@ -4,16 +4,20 @@ var scheduledAppointmentRegex = /(.*\s.*)\s\((.*)\)\W{0,3}?\w{0,3}?\W{0,3}?\sw\/
 var settings;
 
 // Grabbing the settings
-var xhr = new XMLHttpRequest();
-var requestUrl = 'https://api.myjson.com/bins/28euu'; // TODO: Make requestUrl editable
-xhr.onreadystatechange = function(){
-    if(this.readyState == 4 && this.status == 200){
-        var settings = JSON.parse(this.responseText);
-        setSettings(settings);
-    }
-};
-xhr.open('GET', requestUrl, true);
-xhr.send();
+
+//requestUrl: 'https://api.myjson.com/bins/28euu';
+chrome.storage.sync.get(function(items){
+    var requestUrl = items.settingsUrl;
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function(){
+        if(this.readyState == 4 && this.status == 200){
+            var settings = JSON.parse(this.responseText);
+            setSettings(settings);
+        }
+    };
+    xhr.open('GET', requestUrl, true);
+    xhr.send();
+});
 
 function setSettings(new_settings){
     console.log('Settings received!');

@@ -4,18 +4,27 @@
     <meta charset="UTF-8">
     <title>Mathschedule Options Page</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <style>
+    body { line-height: 2.25; }
+    .btn { margin-bottom: 15px; margin-top: 10px; }
+    .status-area { margin-right: 20px; color: #337AB7; }
+    </style>
 </head>
 <body>
     <div class="form-group">
-        <label for="unputUrl" class="col-xs-4">Settings file URL</label>
+        <label for="unputUrl" class="col-xs-4">Settings URL</label>
         <div class="col-xs-8">
             <input type="text" class="form-control" id="inputUrl" placeholder="URL">
         </div>
     </div>
 
+    <div class="status-area text-right", id="status">
+        status
+    </div>
+
     <div class="pannel-footer">
         <div class="col-xs-4 text-left">
-            <button type="button" class="btn btn-primary btn-block" id="clear-button">Clear</button>
+            <button type="button" class="btn btn-primary btn-block" id="restore-button">Restore</button>
         </div>
         <div class="col-xs-4">
 
@@ -24,8 +33,6 @@
         <button type="button" class="btn btn-primary btn-block" id="save-button">Save</button>
         </div>
     </div>
-
-
 
     <script src="options.js"></script>
 </body>
