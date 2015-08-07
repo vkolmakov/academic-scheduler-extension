@@ -2,7 +2,6 @@ main = function() {
     $('#schedule-button').click(function(){
         var input = getInputData();
         $('#schedule-button').prop('disabled', true);
-        displayMessage(statusMessages.scheduledInProccess);
         disableInputs();
         chrome.runtime.sendMessage({method: 'schedule', details: input});
         changeStatus();
@@ -70,6 +69,7 @@ main = function() {
 };
 
 function changeStatus() {
+    displayMessage(statusMessages.scheduledInProccess);
     var printDots = setInterval(animateDots, 833);
     setTimeout(function(){
         clearInterval(printDots);
