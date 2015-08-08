@@ -63,8 +63,13 @@ main = function() {
    });
 
    chrome.runtime.sendMessage({method: 'popupClick'}, function(response){
-       var date = response;
+       var date = response.date;
        $('#inputDate').attr("value", date);
+       console.log(response.areSettingsPresent);
+       if(response.areSettingsPresent === false){
+           blockEverything(statusMessages.noSettingsFound);
+           throw new Error(statusMessages.noSettingsFound);
+       }
    });
 };
 
@@ -89,6 +94,16 @@ function changeStatus() {
 }
 function animateDots(dots) {
     $('.status').append('.');
+}
+
+function blockEverything(message) {
+    $('.col-xs-6').each(function(index, value){
+        $(this).addClass('blur');
+    });
+    $('.pannel-footer').addClass('blur');
+    disableInputs();
+    $('#clear-button').prop('disabled', true);
+    displayErrorMessage(message);
 }
 
 function displayErrorMessage(message){
@@ -227,7 +242,8 @@ var statusMessages = {
     'scheduledFailure': 'Appointment was NOT scheduled',
     'scheduledUndetermined': 'Reload the calendar and double-check the appointment status',
     'selectTime': 'Select time',
-    'selectCourse': 'Select course'
+    'selectCourse': 'Select course',
+    'noSettingsFound': 'No settings file found. Make sure settings URL in settings is correct'
 };
 
 $(document).ready(main);

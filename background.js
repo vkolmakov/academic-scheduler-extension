@@ -4,9 +4,7 @@ var scheduledAppointmentRegex = /(.*\s.*)\s\((.*)\)\W{0,3}?\w{0,3}?\W{0,3}?\sw\/
 var calendarUrlRegex = /https:\/\/www\.google\.com\/calendar.*/;
 var settings;
 
-// Grabbing the settings
-
-//requestUrl: 'https://api.myjson.com/bins/28euu';
+//test requestUrl: 'https://api.myjson.com/bins/28euu';
 
 updateSettings();
 
@@ -18,7 +16,6 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
     });
 
 chrome.storage.onChanged.addListener(function(changes, namespace) {
-    console.log('options updated!');
     updateSettings();
 });
 
@@ -34,8 +31,11 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
         startDate = addDaysToDateString(datePickerDate, 0);
         endDate = addDaysToDateString(datePickerDate, 1);
         getScheduledAppointments(startDate, endDate);
-
-        sendResponse(datePickerDate);
+        response = {
+                     'date': datePickerDate,
+                     'areSettingsPresent': areSettingsPresent(),
+                   };
+        sendResponse(response);
     }
     else if(message.method == 'onDateUpdate') {
         datePickerDate = message.details;
@@ -67,6 +67,9 @@ function updateSettings() {
                 var settings = JSON.parse(this.responseText);
                 setSettings(settings);
             }
+            else {
+                setSettings(null);
+            }
         };
         xhr.open('GET', requestUrl, true);
         xhr.send();
@@ -74,7 +77,6 @@ function updateSettings() {
 }
 
 function setSettings(new_settings){
-    console.log('Settings received!');
     settings = new_settings;
 }
 
@@ -141,6 +143,13 @@ function scheduleAppointment(details) {
 }
 function setStatus(status){
     isScheduled = status;
+}
+
+function areSettingsPresent(){
+    if(settings === null)
+        return false;
+    else
+        return true;
 }
 
 /* Helper functions */

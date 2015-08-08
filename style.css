@@ -2,10 +2,15 @@ body {
   width: 550px;
   height: 250px;
   line-height: 2.25;
+}
 
 }
 label {
     margin-bottom: auto;
+}
+
+.blur {
+    -webkit-filter: blur(3px);
 }
 
 .col-xs-3 {
