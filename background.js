@@ -1,23 +1,77 @@
 var dateText, datePickerDate, details, scheduledAppointments, isScheduled, tutorList;
 var popupData = [];
 var scheduledAppointmentRegex = /(.*\s.*)\s\((.*)\)\W{0,3}?\w{0,3}?\W{0,3}?\sw\/(\w*\s?\w{1}?)\W{0,3}?\w{0,3}?\W{0,3}?(\sNOTE:(.*))?/;
+var calendarUrlRegex = /https:\/\/www\.google\.com\/calendar.*/;
 var settings;
 
 // Grabbing the settings
 
 //requestUrl: 'https://api.myjson.com/bins/28euu';
-chrome.storage.sync.get(function(items){
-    var requestUrl = items.settingsUrl;
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function(){
-        if(this.readyState == 4 && this.status == 200){
-            var settings = JSON.parse(this.responseText);
-            setSettings(settings);
-        }
-    };
-    xhr.open('GET', requestUrl, true);
-    xhr.send();
+
+updateSettings();
+
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+    if(calendarUrlRegex.exec(tab.url))
+        chrome.tabs.executeScript(tabId, {file: "content_script.js"}); // every time url is updated run content script again in order to get a new date
+    else
+        return true;
+    });
+
+chrome.storage.onChanged.addListener(function(changes, namespace) {
+    console.log('options updated!');
+    updateSettings();
 });
+
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
+    var startDate, endDate;
+    if(message.method == 'getDate') {
+        dateText = message.dateText;
+        return true;
+    }
+    else if(message.method == 'popupClick') {
+        datePickerDate = convertToDatepickerDate(dateText);
+        // Set startDate and endDate + 1 day after set date in order to get relevant list of scheduled appointments
+        startDate = addDaysToDateString(datePickerDate, 0);
+        endDate = addDaysToDateString(datePickerDate, 1);
+        getScheduledAppointments(startDate, endDate);
+
+        sendResponse(datePickerDate);
+    }
+    else if(message.method == 'onDateUpdate') {
+        datePickerDate = message.details;
+
+        startDate = addDaysToDateString(datePickerDate, 0);
+        endDate = addDaysToDateString(datePickerDate, 1);
+        getScheduledAppointments(startDate, endDate);
+    }
+    else if(message.method == 'schedule') {
+        scheduleAppointment(message.details);
+        return true;
+    }
+    else if(message.method == 'getTutorList') {
+        tutorList = [];
+        tutorList = getAvailableTutors(message.popupDate, message.popupTime, message.popupCourse);
+        sendResponse(tutorList);
+    }
+    else if(message.method == 'getStatus') {
+        sendResponse(isScheduled);
+    }
+});
+
+function updateSettings() {
+    chrome.storage.sync.get(function(items){
+        var requestUrl = items.settingsUrl;
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function(){
+            if(this.readyState == 4 && this.status == 200){
+                var settings = JSON.parse(this.responseText);
+                setSettings(settings);
+            }
+        };
+        xhr.open('GET', requestUrl, true);
+        xhr.send();
+    });
+}
 
 function setSettings(new_settings){
     console.log('Settings received!');
@@ -88,47 +142,6 @@ function scheduleAppointment(details) {
 function setStatus(status){
     isScheduled = status;
 }
-
-chrome.tabs.onUpdated.addListener(function(tab) {
-    chrome.tabs.executeScript(tab, {file: "content_script.js"}); // every time url is updated run content script again in order to get a new date
-    return true;
-    });
-
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
-    var startDate, endDate;
-    if(message.method == 'getDate') {
-        dateText = message.dateText;
-        return true;
-    }
-    else if(message.method == 'popupClick') {
-        datePickerDate = convertToDatepickerDate(dateText);
-        // Set startDate and endDate + 1 day after set date in order to get relevant list of scheduled appointments
-        startDate = addDaysToDateString(datePickerDate, 0);
-        endDate = addDaysToDateString(datePickerDate, 1);
-        getScheduledAppointments(startDate, endDate);
-
-        sendResponse(datePickerDate);
-    }
-    else if(message.method == 'onDateUpdate') {
-        datePickerDate = message.details;
-
-        startDate = addDaysToDateString(datePickerDate, 0);
-        endDate = addDaysToDateString(datePickerDate, 1);
-        getScheduledAppointments(startDate, endDate);
-    }
-    else if(message.method == 'schedule') {
-        scheduleAppointment(message.details);
-        return true;
-    }
-    else if(message.method == 'getTutorList') {
-        tutorList = [];
-        tutorList = getAvailableTutors(message.popupDate, message.popupTime, message.popupCourse);
-        sendResponse(tutorList);
-    }
-    else if(message.method == 'getStatus') {
-        sendResponse(isScheduled);
-    }
-});
 
 /* Helper functions */
 function selectRandomTutor(){
