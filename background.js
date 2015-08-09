@@ -8,6 +8,8 @@ var settings;
 
 updateSettings();
 
+var END_OF_THE_SEMETER = '20150830T000000Z';
+
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
     if(calendarUrlRegex.exec(tab.url))
         chrome.tabs.executeScript(tabId, {file: "content_script.js"}); // every time url is updated run content script again in order to get a new date
@@ -103,27 +105,47 @@ function setScheduledAppointmentsList(array){
 }
 
 function scheduleAppointment(details) {
-    // details = [date, time,  course, tutorName, studentName, phoneNumber]
+    // details = [date, time,  course, tutorName, studentName, phoneNumber, isStudyGroup]
     if(details[3] == 'I\'m feeling lucky!')
         details[3] = selectRandomTutor();
-    var appointmentText = getAppointmentText(details[2], details[4], details[3]);
+    var appointmentText;
     var YearMonthDay = getYearMonthDay(details[0]);
     var startHour = timeEntries[details[1]];
     var endHour = (parseInt(startHour) + 1).toString();
     var startTime = getDateTimeString(new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]), startHour);
     var endTime = getDateTimeString(new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]), endHour);
 
+
+    if(details[6] === true) {
+        courseCode = settings.courseNames[details[2]];
+        appointmentText = 'Study group (' + courseCode + ') ' + 'w/' + details[3];
+        recurrenceText = "RRULE:FREQ=WEEKLY;UNTIL=" + END_OF_THE_SEMETER;
+        descriptionText = rewritePhoneNumber(details[5]) + ' Students: ' + details[4];
+    }
+    else {
+        appointmentText = getAppointmentText(details[2], details[4], details[3]);
+        recurrenceText = null;
+        descriptionText = rewritePhoneNumber(details[5]);
+    }
+
+
     var eventData = {
                     "summary": appointmentText,
                     "start": {
-                        "dateTime": startTime
+                        "dateTime": startTime,
+                        'timeZone': 'America/Chicago'
                     },
                     "end": {
-                        "dateTime": endTime
+                        "dateTime": endTime,
+                        'timeZone': 'America/Chicago'
                     },
+                    "recurrence": [
+                        recurrenceText
+                    ],
                     "colorId": courseColorID[settings.courseNames[details[2]]],
-                    "description" : rewritePhoneNumber(details[5])
+                    "description" : descriptionText
                 };
+
 
     chrome.identity.getAuthToken({ 'interactive': true }, function(token) {
         var xhr = new XMLHttpRequest();

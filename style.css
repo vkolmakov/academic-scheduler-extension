@@ -2,11 +2,16 @@ body {
   width: 550px;
   height: 250px;
   line-height: 2.25;
+  background-color: #F5F5F5;
 }
 
 }
 label {
     margin-bottom: auto;
+}
+
+.group {
+    background-color: #E6E6FA;
 }
 
 .blur {

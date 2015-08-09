@@ -6,16 +6,20 @@ main = function() {
         isStudyGroup = false;
         $('#group-button').removeClass('btn-primary');
         $(this).addClass('btn-primary');
+        $('#inputStudentLabel').text('Name');
+        $('body').removeClass('group');
     });
 
     $('#group-button').click(function() {
         isStudyGroup = true;
         $('#individual-button').removeClass('btn-primary');
         $(this).addClass('btn-primary');
+        $('#inputStudentLabel').text('Names');
+        $('body').addClass('group');
     });
 
     $('#schedule-button').click(function(){
-        var input = getInputData();
+        var input = getInputData(isStudyGroup);
         $('#schedule-button').prop('disabled', true);
         disableInputs();
         chrome.runtime.sendMessage({method: 'schedule', details: input});
@@ -23,7 +27,7 @@ main = function() {
     });
 
     $('#clear-button').click(function(){
-        chrome.runtime.sendMessage({method: 'onDateUpdate', details: date}); // Refresging scheduled appointments
+        chrome.runtime.sendMessage({method: 'onDateUpdate', details: date}); // Refreshing scheduled appointments
         clearForms();
     });
 
@@ -203,7 +207,7 @@ function isValidName(name){
         return false;
 }
 
-function getInputData(){
+function getInputData(isStudyGroup){
     // Returns contents of forms as a list
     var date = $('#inputDate').val();
     var time = $('#inputTime').val();
@@ -212,7 +216,7 @@ function getInputData(){
     var studentName = $('#inputStudent').val();
     var phoneNumber = $('#inputPhone').val();
 
-    return [date, time,  course, tutorName, studentName, phoneNumber];
+    return [date, time,  course, tutorName, studentName, phoneNumber, isStudyGroup];
 }
 function disableInputs(){
     $('#schedule-button').prop('disabled', true);
