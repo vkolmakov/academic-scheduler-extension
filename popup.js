@@ -1,4 +1,19 @@
 main = function() {
+
+    var isStudyGroup = false;
+
+    $('#individual-button').click(function() {
+        isStudyGroup = false;
+        $('#group-button').removeClass('btn-primary');
+        $(this).addClass('btn-primary');
+    });
+
+    $('#group-button').click(function() {
+        isStudyGroup = true;
+        $('#individual-button').removeClass('btn-primary');
+        $(this).addClass('btn-primary');
+    });
+
     $('#schedule-button').click(function(){
         var input = getInputData();
         $('#schedule-button').prop('disabled', true);
@@ -65,7 +80,6 @@ main = function() {
    chrome.runtime.sendMessage({method: 'popupClick'}, function(response){
        var date = response.date;
        $('#inputDate').attr("value", date);
-       console.log(response.areSettingsPresent);
        if(response.areSettingsPresent === false){
            blockEverything(statusMessages.noSettingsFound);
            throw new Error(statusMessages.noSettingsFound);
