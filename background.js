@@ -1,6 +1,6 @@
 var dateText, datePickerDate, details, scheduledAppointments, isScheduled, tutorList;
 var popupData = [];
-var scheduledAppointmentRegex = /(.*\s.*)\s\((.*)\)\W{0,3}?\w{0,3}?\W{0,3}?\sw\/(\w*\s?\w{1}?)\W{0,3}?\w{0,3}?\W{0,3}?(\sNOTE:(.*))?/;
+var scheduledAppointmentRegex = /(.*\s.*)\s\((.*)\)\W{0,3}?\w{0,3}?\W{0,3}?\sw\/(\w*)\W{0,3}?\w{0,3}?\W{0,3}?(\sNOTE:(.*))?/;
 var calendarUrlRegex = /https:\/\/www\.google\.com\/calendar.*/;
 var settings;
 
@@ -105,7 +105,7 @@ function setScheduledAppointmentsList(array){
 }
 
 function scheduleAppointment(details) {
-    // details = [date, time,  course, tutorName, studentName, phoneNumber, isStudyGroup]
+    // details = [date, time,  course, tutorName, studentName, phoneNumber, isStudyGroup, note]
     if(details[3] == 'I\'m feeling lucky!')
         details[3] = selectRandomTutor();
     var appointmentText;
@@ -123,7 +123,7 @@ function scheduleAppointment(details) {
         descriptionText = rewritePhoneNumber(details[5]) + ' Students: ' + details[4];
     }
     else {
-        appointmentText = getAppointmentText(details[2], details[4], details[3]);
+        appointmentText = getAppointmentText(details[2], details[4], details[3], details[7]);
         recurrenceText = null;
         descriptionText = rewritePhoneNumber(details[5]);
     }
@@ -212,6 +212,7 @@ function filterTutorList(tempTutorList, popupCourse, dateObject, time){
     var startTime = getDateTimeString(dateObject, time);
     var summaries = getAppointmentSummaries(startTime);
     var busyTutors = getTutorsFromSummaries(summaries);
+    console.log(busyTutors);
 
     tutorList = tutorList.filter(function(tutor){
         return busyTutors.indexOf(tutor) < 0;
@@ -279,10 +280,12 @@ function getYearMonthDay(popupDate){
 
     return [year, month, day];
 }
-function getAppointmentText(courseName, studentName, tutorName) {
+function getAppointmentText(courseName, studentName, tutorName, note) {
     // Takes appointment details and returns appointment text
     var courseNumber = settings.courseNames[courseName];
     var appointmentText = studentName + " (" + courseNumber + ") " + "w/" + tutorName;
+    if(note)
+        appointmentText += (" NOTE: " + note);
     return appointmentText;
 }
 
