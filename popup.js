@@ -2,6 +2,11 @@ main = function() {
 
     var isStudyGroup = false;
 
+    $('body').keyup(function(event) {
+        if(event.which == '0x0D' && isTutorSelected() && isStudentInformationValid())
+            scheduleButtonHandler(isStudyGroup);
+    });
+
     $('#individual-button').click(function() {
         isStudyGroup = false;
         $('#group-button').removeClass('btn-primary');
@@ -21,12 +26,7 @@ main = function() {
     });
 
     $('#schedule-button').click(function() {
-        var input = getInputData(isStudyGroup);
-        console.log(input);
-        $('#schedule-button').prop('disabled', true);
-        disableInputs();
-        chrome.runtime.sendMessage({method: 'schedule', details: input});
-        changeStatus();
+        scheduleButtonHandler(isStudyGroup);
     });
 
     $('#clear-button').click(function() {
@@ -93,6 +93,14 @@ main = function() {
        }
    });
 };
+
+function scheduleButtonHandler(isStudyGroup) {
+    var input = getInputData(isStudyGroup);
+    $('#schedule-button').prop('disabled', true);
+    disableInputs();
+    chrome.runtime.sendMessage({method: 'schedule', details: input});
+    changeStatus();
+}
 
 function changeStatus() {
     displayMessage(statusMessages.scheduledInProccess);
