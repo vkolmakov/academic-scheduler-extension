@@ -5,6 +5,7 @@ main = function() {
     $('#individual-button').click(function() {
         isStudyGroup = false;
         $('#group-button').removeClass('btn-primary');
+        $('#inputNote').prop('disabled', false);
         $(this).addClass('btn-primary');
         $('#inputStudentLabel').text('Name');
         $('body').removeClass('group');
@@ -13,25 +14,27 @@ main = function() {
     $('#group-button').click(function() {
         isStudyGroup = true;
         $('#individual-button').removeClass('btn-primary');
+        $('#inputNote').prop('disabled', true);
         $(this).addClass('btn-primary');
         $('#inputStudentLabel').text('Names');
         $('body').addClass('group');
     });
 
-    $('#schedule-button').click(function(){
+    $('#schedule-button').click(function() {
         var input = getInputData(isStudyGroup);
+        console.log(input);
         $('#schedule-button').prop('disabled', true);
         disableInputs();
         chrome.runtime.sendMessage({method: 'schedule', details: input});
         changeStatus();
     });
 
-    $('#clear-button').click(function(){
+    $('#clear-button').click(function() {
         chrome.runtime.sendMessage({method: 'onDateUpdate', details: date}); // Refreshing scheduled appointments
         clearForms();
     });
 
-    $('#inputDate').change(function(){
+    $('#inputDate').change(function() {
         date = $('#inputDate').val();
         $('#inputTutor').empty();
         $('#inputTime').val('');
@@ -40,19 +43,19 @@ main = function() {
         chrome.runtime.sendMessage({method: 'onDateUpdate', details: date});
     });
 
-    $('#inputTutor').change(function(){
-        if(!isTutorSelected()){
+    $('#inputTutor').change(function() {
+        if(!isTutorSelected()) {
             displayErrorMessage(statusMessages.noTutorsAvailable);
             return true;
         }
     });
 
-    $('#inputStudent, #inputPhone').keyup(function(){
-        if(!isTutorSelected()){
+    $('#inputStudent, #inputPhone').keyup(function() {
+        if(!isTutorSelected()) {
             displayErrorMessage(statusMessages.noTutorsAvailable);
             return true;
         }
-        if(isStudentInformationValid() && isTutorSelected){
+        if(isStudentInformationValid() && isTutorSelected) {
             displayMessage(statusMessages.readyToSchedule);
             $('#schedule-button').prop('disabled', false);
         }
@@ -61,7 +64,7 @@ main = function() {
         }
     });
 
-    $('#inputTime, #inputCourse').change(function(){
+    $('#inputTime, #inputCourse').change(function() {
         date = $('#inputDate').val();
         time = $('#inputTime').val();
         course = $('#inputCourse').val();
@@ -81,10 +84,10 @@ main = function() {
        clearForms();
    });
 
-   chrome.runtime.sendMessage({method: 'popupClick'}, function(response){
+   chrome.runtime.sendMessage({method: 'popupClick'}, function(response) {
        var date = response.date;
        $('#inputDate').attr("value", date);
-       if(response.areSettingsPresent === false){
+       if(response.areSettingsPresent === false) {
            blockEverything(statusMessages.noSettingsFound);
            throw new Error(statusMessages.noSettingsFound);
        }
@@ -94,13 +97,13 @@ main = function() {
 function changeStatus() {
     displayMessage(statusMessages.scheduledInProccess);
     var printDots = setInterval(animateDots, 833);
-    setTimeout(function(){
+    setTimeout(function() {
         clearInterval(printDots);
-        chrome.runtime.sendMessage({method: 'getStatus'}, function(response){
-            if(response === true){
+        chrome.runtime.sendMessage({method: 'getStatus'}, function(response) {
+            if(response === true) {
                 displayMessage(statusMessages.scheduledSuccess);
             }
-            else if(response === false){
+            else if(response === false) {
                 displayErrorMessage(statusMessages.scheduledFailure);
             }
             else{
@@ -115,7 +118,7 @@ function animateDots(dots) {
 }
 
 function blockEverything(message) {
-    $('.col-xs-6').each(function(index, value){
+    $('.col-xs-6').each(function(index, value) {
         $(this).addClass('blur');
     });
     $('.pannel-footer').addClass('blur');
@@ -124,17 +127,17 @@ function blockEverything(message) {
     displayErrorMessage(message);
 }
 
-function displayErrorMessage(message){
+function displayErrorMessage(message) {
     $('.status').text(message);
     $('#schedule-button').prop('disabled', true);
     $('.status').addClass('status-error');
 }
-function displayMessage(message){
+function displayMessage(message) {
     $('.status').text(message);
     $('.status').removeClass('status-error');
 }
 
-function updateTutorList(date, time, course){
+function updateTutorList(date, time, course) {
     if(time === null) {
         displayErrorMessage(statusMessages.selectTime);
         return true;
@@ -143,13 +146,13 @@ function updateTutorList(date, time, course){
         displayErrorMessage(statusMessages.selectCourse);
         return true;
     }
-    chrome.runtime.sendMessage({method: 'getTutorList', popupDate: date, popupTime: time, popupCourse: course}, function(response){
+    chrome.runtime.sendMessage({method: 'getTutorList', popupDate: date, popupTime: time, popupCourse: course}, function(response) {
         // On update of inputTime update list of available tutors in popup
         $('#inputTutor').empty();
         if(response) {
             var tutorList = response;
             for(var idx=0; idx < tutorList.length; idx++)
-                if (tutorList[idx] != '0'){
+                if (tutorList[idx] != '0') {
                     $('<option/>').val(tutorList[idx]).html(tutorList[idx]).appendTo('#inputTutor');
                 }
             if(!isTutorSelected())
@@ -169,7 +172,7 @@ function updateTutorList(date, time, course){
         displayErrorMessage(statusMessages.noTutorsAvailable);
 }
 
-function isTutorSelected(){
+function isTutorSelected() {
     var tutorName = $('#inputTutor').val();
     if(tutorName === null)
         return false;
@@ -177,7 +180,7 @@ function isTutorSelected(){
         return true;
 }
 
-function isStudentInformationValid(){
+function isStudentInformationValid() {
     var studentName = $('#inputStudent').val();
     var phoneNumber = $('#inputPhone').val();
 
@@ -189,7 +192,7 @@ function isStudentInformationValid(){
 
 }
 
-function isValidPhoneNumber(phoneNumber){
+function isValidPhoneNumber(phoneNumber) {
     var phoneNumberRegex = /^(\()?(\d{3})(\))?[-\.\s]?(\d{3})[-\.\s]?(\d{4})$/;
     mo = phoneNumberRegex.exec(phoneNumber);
     if(mo)
@@ -198,7 +201,7 @@ function isValidPhoneNumber(phoneNumber){
         return false;
 }
 
-function isValidName(name){
+function isValidName(name) {
     var nameRegex = /([A-Z]){1}.*\s([A-Z]){1}.*/;
     mo = nameRegex.exec(name);
     if(mo)
@@ -207,7 +210,7 @@ function isValidName(name){
         return false;
 }
 
-function getInputData(isStudyGroup){
+function getInputData(isStudyGroup) {
     // Returns contents of forms as a list
     var date = $('#inputDate').val();
     var time = $('#inputTime').val();
@@ -215,37 +218,41 @@ function getInputData(isStudyGroup){
     var tutorName = $('#inputTutor').val();
     var studentName = $('#inputStudent').val();
     var phoneNumber = $('#inputPhone').val();
+    var note = $('#inputNote').val();
 
-    return [date, time,  course, tutorName, studentName, phoneNumber, isStudyGroup];
+    if(note === '')
+        note = null;
+
+    return [date, time,  course, tutorName, studentName, phoneNumber, isStudyGroup, note];
 }
-function disableInputs(){
+function disableInputs() {
     $('#schedule-button').prop('disabled', true);
-    $('input').each(function(index, value){
+    $('input').each(function(index, value) {
         $(this).prop('disabled', true);
     });
-    $('select').each(function(index, value){
+    $('select').each(function(index, value) {
         $(this).prop('disabled', true);
     });
 }
-function enableInputs(){
+function enableInputs() {
     $('#schedule-button').prop('disabled', true);
-    $('input').each(function(index, value){
+    $('input').each(function(index, value) {
         $(this).prop('disabled', false);
     });
-    $('select').each(function(index, value){
+    $('select').each(function(index, value) {
         $(this).prop('disabled', false);
     });
 }
 
-function clearForms(){
+function clearForms() {
     displayMessage(statusMessages.defaultMessage);
     enableInputs();
     $('#schedule-button').prop('disabled', true);
-    $('input').each(function(index, value){
+    $('input').each(function(index, value) {
         if($(this).val() != $('#inputDate').val())
             $(this).val('');
     });
-    $('select').each(function(index, value){
+    $('select').each(function(index, value) {
         $(this).val('');
     });
 }
