@@ -2,13 +2,11 @@ var dateText, datePickerDate, details, scheduledAppointments, isScheduled, tutor
 var popupData = [];
 var scheduledAppointmentRegex = /(.*\s.*)\s\((.*)\)\W{0,3}?\w{0,3}?\W{0,3}?\sw\/(\w*)\W{0,3}?\w{0,3}?\W{0,3}?(\sNOTE:(.*))?/;
 var calendarUrlRegex = /https:\/\/www\.google\.com\/calendar.*/;
-var settings;
+var settings, END_OF_THE_SEMETER;
 
 //test requestUrl: 'https://api.myjson.com/bins/28euu';
 
 updateSettings();
-
-var END_OF_THE_SEMETER = '20150830T000000Z';
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
     if(calendarUrlRegex.exec(tab.url))
@@ -63,14 +61,15 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
 function updateSettings() {
     chrome.storage.sync.get(function(items){
         var requestUrl = items.settingsUrl;
+        var endSemesterDate = items.endSemesterDate;
         var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function(){
             if(this.readyState == 4 && this.status == 200){
                 var settings = JSON.parse(this.responseText);
-                setSettings(settings);
+                setSettings(settings, endSemesterDate);
             }
             else {
-                setSettings(null);
+                setSettings(null, endSemesterDate);
             }
         };
         xhr.open('GET', requestUrl, true);
@@ -78,8 +77,13 @@ function updateSettings() {
     });
 }
 
-function setSettings(new_settings){
-    settings = new_settings;
+function setSettings(newSettings, newEndSemesterDate){
+    settings = newSettings;
+    END_OF_THE_SEMETER = rewriteRecurrenceDate(newEndSemesterDate);
+}
+
+function rewriteRecurrenceDate(date){
+    return date.replace(/-/g, '') + 'T000000Z';
 }
 
 function getScheduledAppointments(startTime, endTime) {
