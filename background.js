@@ -30,6 +30,10 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
         // Set startDate and endDate + 1 day after set date in order to get relevant list of scheduled appointments
         startDate = addDaysToDateString(datePickerDate, 0);
         endDate = addDaysToDateString(datePickerDate, 1);
+
+        if(!startDate)
+            return true;
+
         getScheduledAppointments(startDate, endDate);
         response = {
                      'date': datePickerDate,
@@ -42,6 +46,10 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
 
         startDate = addDaysToDateString(datePickerDate, 0);
         endDate = addDaysToDateString(datePickerDate, 1);
+
+        if(!startDate)
+            return true;
+
         getScheduledAppointments(startDate, endDate);
     }
     else if(message.method == 'schedule') {
@@ -187,6 +195,9 @@ function selectRandomTutor(){
 
 function addDaysToDateString(dateString, days){
     var YearMonthDay = getYearMonthDay(dateString);
+    if(!YearMonthDay)
+        return null;
+
     var dateObject = new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]);
 
     dateObject.setDate(dateObject.getDate() + days);
@@ -198,6 +209,8 @@ function getAvailableTutors(popupDate, popupTime, popupCourse){
 
     var time = timeEntries[popupTime];
     var YearMonthDay = getYearMonthDay(popupDate);
+    if(!YearMonthDay)
+        return null;
     var dateObject = new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]);
 
     var weekDay = dayNames[dateObject.getDay()];
@@ -216,7 +229,6 @@ function filterTutorList(tempTutorList, popupCourse, dateObject, time){
     var startTime = getDateTimeString(dateObject, time);
     var summaries = getAppointmentSummaries(startTime);
     var busyTutors = getTutorsFromSummaries(summaries);
-    console.log(busyTutors);
 
     tutorList = tutorList.filter(function(tutor){
         return busyTutors.indexOf(tutor) < 0;
@@ -278,9 +290,16 @@ function contains(array, element){
 }
 
 function getYearMonthDay(popupDate){
-    var year = parseInt(popupDate.substring(0,4));
-    var month = parseInt(popupDate.substring(5,7));
-    var day = parseInt(popupDate.substring(8,10));
+    var year, month, day;
+
+    try {
+        year = parseInt(popupDate.substring(0,4));
+        month = parseInt(popupDate.substring(5,7));
+        day = parseInt(popupDate.substring(8,10));
+    }
+    catch(error) {
+        return null;
+    }
 
     return [year, month, day];
 }
@@ -297,7 +316,13 @@ function convertToDatepickerDate(dateText) {
     // Converts date text from google calendar page into form for datepicker
     var dateRegex = /.*,\s(\w{3})\s(\d{1,2}),\s(\d{4})/;
     var mo = dateRegex.exec(dateText);
-    month = getMonth(mo[1]);
+
+    try {
+        month = getMonth(mo[1]);
+    }
+    catch(error) {
+        return null;
+    }
     day = ("0" + (mo[2])).slice(-2);
     year = mo[3];
     var datePickerDate = year + '-' + month + '-' + day;
