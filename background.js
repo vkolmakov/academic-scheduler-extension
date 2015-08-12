@@ -31,10 +31,13 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
         startDate = addDaysToDateString(datePickerDate, 0);
         endDate = addDaysToDateString(datePickerDate, 1);
 
-        if(!startDate)
-            return true;
-
-        getScheduledAppointments(startDate, endDate);
+        try {
+            getScheduledAppointments(startDate, endDate);
+        }
+        catch(error) {
+            console.log(error);
+        }
+        
         response = {
                      'date': datePickerDate,
                      'areSettingsPresent': areSettingsPresent(),

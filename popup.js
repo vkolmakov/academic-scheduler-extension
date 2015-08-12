@@ -71,10 +71,23 @@ main = function() {
         updateTutorList(date, time, course);
    });
 
+   chrome.runtime.sendMessage({method: 'popupClick'}, function(response) {
+       if(response.areSettingsPresent === false) {
+           blockEverything(statusMessages.noSettingsFound);
+           throw new Error(statusMessages.noSettingsFound);
+       }
+       var date = response.date;
+       $('#inputDate').attr("value", date);
+   });
+
    // Populating time entries from background page
    chrome.runtime.getBackgroundPage(function (backgroundPage) {
        var timeEntries = backgroundPage.timeEntries;
        var courses = backgroundPage.settings.courseNames;
+       if(!courses) {
+            blockEverything(statusMessages.noSettingsFound);
+            throw new Error(statusMessages.noSettingsFound);
+        }
        for(var key in timeEntries) {
            $('<option/>').val(key).html(key).appendTo('#inputTime');
        }
@@ -82,15 +95,6 @@ main = function() {
            $('<option/>').val(course).html(course).appendTo('#inputCourse');
        }
        clearForms();
-   });
-
-   chrome.runtime.sendMessage({method: 'popupClick'}, function(response) {
-       var date = response.date;
-       $('#inputDate').attr("value", date);
-       if(response.areSettingsPresent === false) {
-           blockEverything(statusMessages.noSettingsFound);
-           throw new Error(statusMessages.noSettingsFound);
-       }
    });
 };
 
