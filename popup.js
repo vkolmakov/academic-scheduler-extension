@@ -20,6 +20,7 @@ main = function() {
         isStudyGroup = true;
         $('#individual-button').removeClass('btn-primary');
         $('#inputNote').prop('disabled', true);
+        $('#inputNote').val('');
         $(this).addClass('btn-primary');
         $('#inputStudentLabel').text('Names');
         $('body').addClass('group');
@@ -259,6 +260,7 @@ function enableInputs() {
 function clearForms() {
     displayMessage(statusMessages.defaultMessage);
     enableInputs();
+    $('#inputTutor').empty();
     $('#schedule-button').prop('disabled', true);
     $('input').each(function(index, value) {
         if($(this).val() != $('#inputDate').val())
