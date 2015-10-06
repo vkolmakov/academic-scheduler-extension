@@ -1,6 +1,6 @@
 var dateText, datePickerDate, details, scheduledAppointments, isScheduled, tutorList;
 var popupData = [];
-var scheduledAppointmentRegex = /(.*\s.*)\s\((.*)\)\W{0,3}?\w{0,3}?\W{0,3}?\sw\/(\w*)\W{0,3}?\w{0,3}?\W{0,3}?(\sNOTE:(.*))?/;
+var scheduledAppointmentRegex = /(.*\s.*)\s\((.*)\;\s(.*)\)\W{0,3}?\w{0,3}?\W{0,3}?\sw\/(\w*.{0,3}?)\W{0,3}?\w{0,3}?\W{0,3}?(\sNOTE:(.*))?/;
 var calendarUrlRegex = /https:\/\/www\.google\.com\/calendar.*/;
 var settings, END_OF_THE_SEMETER;
 
@@ -37,7 +37,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
         catch(error) {
             console.log(error);
         }
-        
+
         response = {
                      'date': datePickerDate,
                      'areSettingsPresent': areSettingsPresent(),
@@ -66,6 +66,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
     }
     else if(message.method == 'getStatus') {
         sendResponse(isScheduled);
+    }
+    else if(message.method == 'getProfessorsList') {
+        sendResponse(getProfessorsList(message.course));
     }
 });
 
@@ -121,28 +124,27 @@ function setScheduledAppointmentsList(array){
 
 function scheduleAppointment(details) {
     // details = [date, time,  course, tutorName, studentName, phoneNumber, isStudyGroup, note]
-    if(details[3] == 'I\'m feeling lucky!')
-        details[3] = selectRandomTutor();
+    if(details.tutorName == 'I\'m feeling lucky!')
+        details.tutorName = selectRandomTutor();
     var appointmentText;
-    var YearMonthDay = getYearMonthDay(details[0]);
-    var startHour = timeEntries[details[1]];
+    var YearMonthDay = getYearMonthDay(details.date);
+    var startHour = timeEntries[details.time];
     var endHour = (parseInt(startHour) + 1).toString();
     var startTime = getDateTimeString(new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]), startHour);
     var endTime = getDateTimeString(new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]), endHour);
 
 
-    if(details[6] === true) {
-        courseCode = settings.courseNames[details[2]];
-        appointmentText = 'Study group (' + courseCode + ') ' + 'w/' + details[3];
+    if(details.isStudyGroup === true) {
+        courseCode = settings.courseNames[details.course];
+        appointmentText = 'Study group (' + courseCode + '; ' + details.professorName + ') w/' + details.tutorName;
         recurrenceText = "RRULE:FREQ=WEEKLY;UNTIL=" + END_OF_THE_SEMETER;
-        descriptionText = rewritePhoneNumber(details[5]) + ' Students: ' + details[4];
+        descriptionText = rewritePhoneNumber(details.phoneNumber) + ' Students: ' + details.studentName;
     }
     else {
-        appointmentText = getAppointmentText(details[2], details[4], details[3], details[7]);
+        appointmentText = getAppointmentText(details.course, details.studentName, details.tutorName, details.note, details.professorName);
         recurrenceText = null;
-        descriptionText = rewritePhoneNumber(details[5]);
+        descriptionText = rewritePhoneNumber(details.phoneNumber);
     }
-
 
     var eventData = {
                     "summary": appointmentText,
@@ -157,7 +159,7 @@ function scheduleAppointment(details) {
                     "recurrence": [
                         recurrenceText
                     ],
-                    "colorId": courseColorID[settings.courseNames[details[2]]],
+                    "colorId": courseColorID[settings.courseNames[details.course]],
                     "description" : descriptionText
                 };
 
@@ -205,6 +207,14 @@ function addDaysToDateString(dateString, days){
 
     dateObject.setDate(dateObject.getDate() + days);
     return dateObject.toISOString().substring(0,10) + 'T00:00:00-05:00';
+}
+
+function getProfessorsList(course) {
+    professorsList = {
+        '118: GeneralEducation': ['Some Prof', 'One more random prof']
+        // Populate the list or move it to settings
+    };
+    return professorsList[course];
 }
 
 function getAvailableTutors(popupDate, popupTime, popupCourse){
@@ -264,7 +274,7 @@ function getTutorsFromSummaries(summaries){
     for(i = 0; i < summaries.length; i++){
         var mo = scheduledAppointmentRegex.exec(summaries[i]);
         if(mo)
-            tutors.push(mo[3]);
+            tutors.push(mo[4]);
     }
     return tutors;
 }
@@ -306,10 +316,10 @@ function getYearMonthDay(popupDate){
 
     return [year, month, day];
 }
-function getAppointmentText(courseName, studentName, tutorName, note) {
+function getAppointmentText(courseName, studentName, tutorName, note, professorName) {
     // Takes appointment details and returns appointment text
     var courseNumber = settings.courseNames[courseName];
-    var appointmentText = studentName + " (" + courseNumber + ") " + "w/" + tutorName;
+    var appointmentText = studentName + " (" + courseNumber + "; " + professorName + ") " + "w/" + tutorName;
     if(note)
         appointmentText += (" NOTE: " + note);
     return appointmentText;
@@ -336,7 +346,7 @@ function rewritePhoneNumber(phoneNumber){
     // Returns given phoneNumber in format (XXX)-XXX-XXXX
     phoneNumberRegex = /^\(?(\d{3})\)?[-\.\s]?(\d{3})[-\.\s]?(\d{4})$/;
 
-    updatedPhoneNumber = phoneNumber.replace(phoneNumberRegex, '($1)-$2-$3');
+    updatedPhoneNumber = phoneNumber.replace(phoneNumberRegex, '($1)$2-$3');
     return updatedPhoneNumber;
 }
 
@@ -380,7 +390,12 @@ var courseColorID = {'99': '10',
                 '208': '5',
                 '209': '6',
                 '210': '3',
-                '212': '7'};
+                '212': '7',
+                'PHYS235': '7',
+                'PHYS236': '7',
+                'PHYS237': '7',
+                'PHYS215': '7',
+                'PHYS216': '7'};
 
 var timeEntries = {'9:00am': '9',
                '10:00am': '10',

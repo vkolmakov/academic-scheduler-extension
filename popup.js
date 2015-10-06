@@ -65,10 +65,14 @@ main = function() {
         }
     });
 
-    $('#inputTime, #inputCourse').change(function() {
+    $('#inputTime, #inputCourse').change(function(event) {
         date = $('#inputDate').val();
         time = $('#inputTime').val();
         course = $('#inputCourse').val();
+        console.log(course);
+        if (event.target.id == 'inputCourse') {
+            updateProfessorsList(course);
+        }
         updateTutorList(date, time, course);
    });
 
@@ -148,6 +152,28 @@ function displayErrorMessage(message) {
 function displayMessage(message) {
     $('.status').text(message);
     $('.status').removeClass('status-error');
+}
+
+function updateProfessorsList(course) {
+    console.log("updating profs");
+    if(course === null) {
+        displayErrorMessage(statusMessages.selectCourse);
+        return true;
+    }
+    chrome.runtime.sendMessage({method: 'getProfessorsList', course: course}, function(response) {
+        console.log("got response");
+        console.log(response);
+        $('#inputProfessor').empty();
+            if(response) {
+                var professorsList = response;
+                for(var idx = 0; idx < professorsList.length; idx++)
+                    $('<option/>').val(professorsList[idx]).html(professorsList[idx]).appendTo('#inputProfessor');
+            }
+            else {
+                $('#inputProfessor').empty();
+                displayErrorMessage(statusMessages.noSettingsFound);
+            }
+    });
 }
 
 function updateTutorList(date, time, course) {
@@ -232,11 +258,20 @@ function getInputData(isStudyGroup) {
     var studentName = $('#inputStudent').val();
     var phoneNumber = $('#inputPhone').val();
     var note = $('#inputNote').val();
+    var professorName = $('#inputProfessor').val();
 
     if(note === '')
         note = null;
-
-    return [date, time,  course, tutorName, studentName, phoneNumber, isStudyGroup, note];
+    return {'date': date,
+            'time': time,
+            'course': course,
+            'tutorName': tutorName,
+            'studentName': studentName,
+            'phoneNumber': phoneNumber,
+            'isStudyGroup': isStudyGroup,
+            'note': note,
+            'professorName': professorName
+        };
 }
 function disableInputs() {
     $('#schedule-button').prop('disabled', true);
