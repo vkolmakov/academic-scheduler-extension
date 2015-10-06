@@ -88,7 +88,7 @@ main = function() {
    // Populating time entries from background page
    chrome.runtime.getBackgroundPage(function (backgroundPage) {
        var timeEntries = backgroundPage.timeEntries;
-       var courses = backgroundPage.settings.courseNames;
+       var courses = backgroundPage.settings.courses;
        if(!courses) {
             blockEverything(statusMessages.noSettingsFound);
             throw new Error(statusMessages.noSettingsFound);
@@ -155,14 +155,11 @@ function displayMessage(message) {
 }
 
 function updateProfessorsList(course) {
-    console.log("updating profs");
     if(course === null) {
         displayErrorMessage(statusMessages.selectCourse);
         return true;
     }
     chrome.runtime.sendMessage({method: 'getProfessorsList', course: course}, function(response) {
-        console.log("got response");
-        console.log(response);
         $('#inputProfessor').empty();
             if(response) {
                 var professorsList = response;

@@ -123,7 +123,6 @@ function setScheduledAppointmentsList(array){
 }
 
 function scheduleAppointment(details) {
-    // details = [date, time,  course, tutorName, studentName, phoneNumber, isStudyGroup, note]
     if(details.tutorName == 'I\'m feeling lucky!')
         details.tutorName = selectRandomTutor();
     var appointmentText;
@@ -135,7 +134,7 @@ function scheduleAppointment(details) {
 
 
     if(details.isStudyGroup === true) {
-        courseCode = settings.courseNames[details.course];
+        courseCode = settings.courses[details.course].code; // TEST
         appointmentText = 'Study group (' + courseCode + '; ' + details.professorName + ') w/' + details.tutorName;
         recurrenceText = "RRULE:FREQ=WEEKLY;UNTIL=" + END_OF_THE_SEMETER;
         descriptionText = rewritePhoneNumber(details.phoneNumber) + ' Students: ' + details.studentName;
@@ -159,7 +158,7 @@ function scheduleAppointment(details) {
                     "recurrence": [
                         recurrenceText
                     ],
-                    "colorId": courseColorID[settings.courseNames[details.course]],
+                    "colorId": settings.courses[details.course].color, // TEST
                     "description" : descriptionText
                 };
 
@@ -211,10 +210,10 @@ function addDaysToDateString(dateString, days){
 
 function getProfessorsList(course) {
     professorsList = {
-        '118: GeneralEducation': ['Some Prof', 'One more random prof']
+        '118': ['Some Prof', 'One more random prof']
         // Populate the list or move it to settings
     };
-    return professorsList[course];
+    return professorsList[settings.courses[course].code];
 }
 
 function getAvailableTutors(popupDate, popupTime, popupCourse){
@@ -280,11 +279,11 @@ function getTutorsFromSummaries(summaries){
 }
 
 function isAbleToTuror(tutorName, course){
-    courseCode = settings.courseNames[course];
+    courseCode = settings.courses[course].code; // TEST
     if(tutorName == '0')
         return false;
     try{
-        if(contains(settings.tutorCourse[tutorName], courseCode) || contains(settings.tutorCourse.Everyone, courseCode))
+        if(contains(settings.tutors[tutorName], courseCode) || contains(settings.tutors.Everyone, courseCode)) // TEST
             return true;
     }
     catch (error){
@@ -318,7 +317,7 @@ function getYearMonthDay(popupDate){
 }
 function getAppointmentText(courseName, studentName, tutorName, note, professorName) {
     // Takes appointment details and returns appointment text
-    var courseNumber = settings.courseNames[courseName];
+    var courseNumber = settings.courses[courseName].code; // TEST
     var appointmentText = studentName + " (" + courseNumber + "; " + professorName + ") " + "w/" + tutorName;
     if(note)
         appointmentText += (" NOTE: " + note);
@@ -379,23 +378,6 @@ var dayNames = new Array(
   'Saturday'
 );
 
-var courseColorID = {'99': '10',
-                '143': '10',
-                '204': '10',
-                '207': '10',
-                '118': '8',
-                '125': '9',
-                '144': '4',
-                '146': '2',
-                '208': '5',
-                '209': '6',
-                '210': '3',
-                '212': '7',
-                'PHYS235': '7',
-                'PHYS236': '7',
-                'PHYS237': '7',
-                'PHYS215': '7',
-                'PHYS216': '7'};
 
 var timeEntries = {'9:00am': '9',
                '10:00am': '10',
