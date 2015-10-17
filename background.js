@@ -191,9 +191,32 @@ function areSettingsPresent(){
 }
 
 /* Helper functions */
-function selectRandomTutor(){
+// function selectRandomTutor(){
+//     tutorList.splice(tutorList.indexOf('I\'m feeling lucky!'), 1);
+//     var randomTutor = tutorList[Math.floor(Math.random() * tutorList.length)];
+//     return randomTutor;
+// }
+
+function selectRandomTutor() {
     tutorList.splice(tutorList.indexOf('I\'m feeling lucky!'), 1);
-    var randomTutor = tutorList[Math.floor(Math.random() * tutorList.length)];
+    var min_num_courses = settings.tutors[tutorList[0]].length;
+    var tutors_to_select = [];
+    tutors_to_select.push(tutorList[0]);
+	for(var i = 0; i < tutorList.length; i++) {
+        var num_courses = settings.tutors[tutorList[i]].length;
+        if (num_courses  == min_num_courses)
+        	tutors_to_select.push(tutorList[i]);
+    	else if(num_courses  < min_num_courses) {
+            min_num_courses = num_courses; // Resetting the minumum
+            tutors_to_select = [];
+            tutors_to_select.push(tutorList[i]);
+	    }
+	}
+
+    console.log(tutors_to_select);
+    console.log(min_num_courses);
+
+    var randomTutor = tutors_to_select[Math.floor(Math.random() * tutors_to_select.length)];
     return randomTutor;
 }
 
@@ -209,11 +232,8 @@ function addDaysToDateString(dateString, days){
 }
 
 function getProfessorsList(course) {
-    professorsList = {
-        '118': ['Some Prof', 'One more random prof']
-        // Populate the list or move it to settings
-    };
-    return professorsList[settings.courses[course].code];
+    console.log("From getProfessorsList");
+    return settings.professors[settings.courses[course].code];
 }
 
 function getAvailableTutors(popupDate, popupTime, popupCourse){
