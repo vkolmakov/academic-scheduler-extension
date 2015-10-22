@@ -36,12 +36,14 @@ main = function() {
     });
 
     $('#inputDate').change(function() {
-        date = $('#inputDate').val();
+        var date = $('#inputDate').val();
+        var course = $('#inputCourse').val();
         $('#inputTutor').empty();
         $('#inputTime').val('');
         $('#schedule-button').prop('disabled', true);
         displayErrorMessage(statusMessages.selectTime);
         chrome.runtime.sendMessage({method: 'onDateUpdate', details: date});
+        updateAvailableSlotsList(date, course);
     });
 
     $('#inputTutor').change(function() {
@@ -72,6 +74,7 @@ main = function() {
         console.log(course);
         if (event.target.id == 'inputCourse') {
             updateProfessorsList(course);
+            updateAvailableSlotsList(date, course);
         }
         updateTutorList(date, time, course);
    });
@@ -218,19 +221,19 @@ function isTutorSelected() {
 
 function isStudentInformationValid() {
     var studentName = $('#inputStudent').val();
-    var phoneNumber = $('#inputPhone').val();
+    var contactInfo = $('#inputPhone').val();
 
 
-    if(isValidPhoneNumber(phoneNumber) && isValidName(studentName))
+    if(isValidContactInfo(contactInfo) && isValidName(studentName))
         return true;
     else
         return false;
 
 }
 
-function isValidPhoneNumber(phoneNumber) {
-    var phoneNumberRegex = /^(\()?(\d{3})(\))?[-\.\s]?(\d{3})[-\.\s]?(\d{4})$/;
-    mo = phoneNumberRegex.exec(phoneNumber);
+function isValidContactInfo(contactInfo) {
+    var contactInfoRegex = /(^(\()?(\d{3})(\))?[-\.\s]?(\d{3})[-\.\s]?(\d{4})$)|(^\S+@\S+\.\S+$)/;
+    mo = contactInfoRegex.exec(contactInfo);
     if(mo)
         return true;
     else
@@ -238,7 +241,7 @@ function isValidPhoneNumber(phoneNumber) {
 }
 
 function isValidName(name) {
-    var nameRegex = /([A-Z]){1}.*\s([A-Z]){1}.*/;
+    var nameRegex = /.*\s.*/;
     mo = nameRegex.exec(name);
     if(mo)
         return true;
@@ -292,6 +295,7 @@ function enableInputs() {
 function clearForms() {
     displayMessage(statusMessages.defaultMessage);
     enableInputs();
+    $("#available-slots-list tr").remove();
     $('#inputTutor').empty();
     $('#schedule-button').prop('disabled', true);
     $('input').each(function(index, value) {
@@ -303,12 +307,34 @@ function clearForms() {
     });
 }
 
+function updateAvailableSlotsList(date, course) {
+    $("#available-slots-list tr").remove();
+
+    if(!(date && course)){
+        displayErrorMessage(statusMessages.selectCourse);
+    }
+    chrome.runtime.sendMessage({method: 'getSlotsList', date: date, course: course}, function(response){
+        chrome.runtime.getBackgroundPage(function (backgroundPage) {
+            var timeEntries = backgroundPage.timeEntries;
+            console.log(response);
+            console.log(timeEntries);
+            for(var currentTime in response) { //TODO: Make sure that order is correct
+                var text = currentTime + ' ' + response[currentTime] + ' available slots'; //TODO: Format the text
+                var $row = $('<tr>', {class: 'time-row', id:currentTime});
+                var $td = $('<td>', {text: text});
+                $row.append($td);
+                $('#available-slots-list').append($row);
+            }
+        });
+    });
+}
+
 var statusMessages = {
     'noTutorsAvailable': 'There are no tutors available at given time',
     'defaultMessage': 'Scheduling extension, select date/time/course',
-    'readyToSchedule': 'Phone number and student name are valid, appointment may be scheduled',
+    'readyToSchedule': 'Phone number/email and name are valid, appointment may be scheduled',
     'scheduledInProccess': 'Trying to schedule an appointment',
-    'invalidInput': 'Enter a valid phone number and student name',
+    'invalidInput': 'Enter a valid phone number OR email address and student name',
     'scheduledSuccess': 'Appointment has been scheduled, click Clear to schedule one more',
     'scheduledFailure': 'Appointment was NOT scheduled',
     'scheduledUndetermined': 'Reload the calendar and double-check the appointment status',
@@ -316,5 +342,6 @@ var statusMessages = {
     'selectCourse': 'Select course',
     'noSettingsFound': 'No settings file found. Make sure settings URL in settings is correct'
 };
+
 
 $(document).ready(main);

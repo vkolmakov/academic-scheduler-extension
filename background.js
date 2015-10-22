@@ -1,7 +1,7 @@
 var dateText, datePickerDate, details, scheduledAppointments, isScheduled, tutorList;
 var popupData = [];
 var scheduledAppointmentRegex = /(.*\s.*)\s\((.*)\;\s(.*)\)\W{0,3}?\w{0,3}?\W{0,3}?\sw\/(\w*.{0,3}?)\W{0,3}?\w{0,3}?\W{0,3}?(\sNOTE:(.*))?/;
-var calendarUrlRegex = /https:\/\/www\.google\.com\/calendar.*/;
+var calendarUrlRegex = /(https:\/\/www\.google\.com\/calendar.*)|(https:\/\/calendar\.google\.com\/calendar\/*)/;
 var settings, END_OF_THE_SEMETER;
 
 //test requestUrl: 'https://api.myjson.com/bins/28euu';
@@ -69,6 +69,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
     }
     else if(message.method == 'getProfessorsList') {
         sendResponse(getProfessorsList(message.course));
+    }
+    else if(message.method == 'getSlotsList') {
+        sendResponse(getAvailableSlots(message.date, message.course));
     }
 });
 
@@ -190,6 +193,16 @@ function areSettingsPresent(){
         return true;
 }
 
+function getAvailableSlots(date, course) {
+    var availableSlots = {};
+    for(var currentTime in timeEntries) {
+        var tutorList = getAvailableTutors(date, currentTime, course);
+        tutorList.splice(tutorList.indexOf('I\'m feeling lucky!'), 1);
+        availableSlots[currentTime] = tutorList.length; // TODO: Make sure that they are in correct oreder
+    }
+    return availableSlots;
+}
+
 /* Helper functions */
 // function selectRandomTutor(){
 //     tutorList.splice(tutorList.indexOf('I\'m feeling lucky!'), 1);
@@ -232,13 +245,11 @@ function addDaysToDateString(dateString, days){
 }
 
 function getProfessorsList(course) {
-    console.log("From getProfessorsList");
     return settings.professors[settings.courses[course].code];
 }
 
 function getAvailableTutors(popupDate, popupTime, popupCourse){
     var tutorList = [];
-
     var time = timeEntries[popupTime];
     var YearMonthDay = getYearMonthDay(popupDate);
     if(!YearMonthDay)
@@ -337,11 +348,20 @@ function getYearMonthDay(popupDate){
 }
 function getAppointmentText(courseName, studentName, tutorName, note, professorName) {
     // Takes appointment details and returns appointment text
-    var courseNumber = settings.courses[courseName].code; // TEST
-    var appointmentText = studentName + " (" + courseNumber + "; " + professorName + ") " + "w/" + tutorName;
+    var courseNumber = settings.courses[courseName].code;
+    var appointmentText = rewriteName(studentName) + " (" + courseNumber + "; " + professorName + ") " + "w/" + tutorName;
     if(note)
         appointmentText += (" NOTE: " + note);
     return appointmentText;
+}
+
+function rewriteName(name) {
+    var tokens = name.split(" ");
+    for (var i = 0; i < tokens.length; i++) {
+    	var first_letter = tokens[i].charAt(0).toUpperCase();
+        tokens[i] = first_letter + tokens[i].substr(1).toLowerCase();
+    }
+    return tokens.join(" ");
 }
 
 function convertToDatepickerDate(dateText) {
