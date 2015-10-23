@@ -1,6 +1,6 @@
 body {
-  width: 550px;
-  height: 250px;
+  width: 750px;
+  height: 450px;
   line-height: 2.25;
   background-color: #F5F5F5;
 }
@@ -8,6 +8,14 @@ body {
 }
 label {
     margin-bottom: auto;
+}
+
+tr.slot-unavailable {
+    color: #DB6450;
+}
+
+tr.slot-available {
+    color: #337AB7;
 }
 
 .group {

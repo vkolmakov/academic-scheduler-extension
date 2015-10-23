@@ -122,16 +122,17 @@ function changeStatus() {
         chrome.runtime.sendMessage({method: 'getStatus'}, function(response) {
             if(response === true) {
                 displayMessage(statusMessages.scheduledSuccess);
+                $("#available-slots-list tr").remove();
             }
             else if(response === false) {
                 displayErrorMessage(statusMessages.scheduledFailure);
             }
             else{
-                // Case where XHR request was not completed in 2.5 seconds
+                // Case where XHR request was not completed in 3 seconds
                 displayErrorMessage(statusMessages.scheduledUndetermined);
             }
         });
-    }, 2500);
+    }, 3500);
 }
 function animateDots(dots) {
     $('.status').append('.');
@@ -222,13 +223,10 @@ function isTutorSelected() {
 function isStudentInformationValid() {
     var studentName = $('#inputStudent').val();
     var contactInfo = $('#inputPhone').val();
-
-
     if(isValidContactInfo(contactInfo) && isValidName(studentName))
         return true;
     else
         return false;
-
 }
 
 function isValidContactInfo(contactInfo) {
@@ -309,24 +307,38 @@ function clearForms() {
 
 function updateAvailableSlotsList(date, course) {
     $("#available-slots-list tr").remove();
-
     if(!(date && course)){
         displayErrorMessage(statusMessages.selectCourse);
+        return;
     }
     chrome.runtime.sendMessage({method: 'getSlotsList', date: date, course: course}, function(response){
         chrome.runtime.getBackgroundPage(function (backgroundPage) {
             var timeEntries = backgroundPage.timeEntries;
-            console.log(response);
-            console.log(timeEntries);
             for(var currentTime in response) { //TODO: Make sure that order is correct
-                var text = currentTime + ' ' + response[currentTime] + ' available slots'; //TODO: Format the text
-                var $row = $('<tr>', {class: 'time-row', id:currentTime});
-                var $td = $('<td>', {text: text});
-                $row.append($td);
+                var $row = getSlotRow(currentTime, response[currentTime]);
                 $('#available-slots-list').append($row);
             }
+            $('html').height($('#main').height());
         });
     });
+}
+
+function getSlotRow(time, tutorList) {
+    var text = '';
+    var type;
+
+    if(tutorList.length === 0) {
+        text += time + ': No available tutors';
+        type = 'slot-unavailable';
+    }
+    else {
+        text += time + ': ' + tutorList.length + ' available';
+        type = 'slot-available';
+    }
+    var $row = $('<tr>', {class: type, id:time});
+    var $td = $('<td>', {text: text});
+    $row.append($td);
+    return $row;
 }
 
 var statusMessages = {

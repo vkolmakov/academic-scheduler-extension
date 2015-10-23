@@ -198,7 +198,7 @@ function getAvailableSlots(date, course) {
     for(var currentTime in timeEntries) {
         var tutorList = getAvailableTutors(date, currentTime, course);
         tutorList.splice(tutorList.indexOf('I\'m feeling lucky!'), 1);
-        availableSlots[currentTime] = tutorList.length; // TODO: Make sure that they are in correct oreder
+        availableSlots[currentTime] = tutorList; // TODO: Make sure that they are in correct oreder
     }
     return availableSlots;
 }
@@ -257,6 +257,9 @@ function getAvailableTutors(popupDate, popupTime, popupCourse){
     var dateObject = new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]);
 
     var weekDay = dayNames[dateObject.getDay()];
+
+    if(!settings.schedule[weekDay][time])
+        return []; // If day-time is not in schedule return empty list
     tutorList = filterTutorList(settings.schedule[weekDay][time], popupCourse, dateObject, time);
 
     return tutorList;
