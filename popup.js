@@ -260,6 +260,17 @@ function isProfessorSelected() {
     }
 }
 
+function isTimeSelected() {
+    if($('#inputTime').val() === null) {
+        highlightField('error', '#inputTime');
+        return false;
+    }
+    else {
+        highlightField('success', '#inputTime');
+        return true;
+    }
+}
+
 function isStudentInformationValid() {
     var studentName = $('#inputStudent').val();
     var contactInfo = $('#inputPhone').val();
@@ -310,6 +321,7 @@ function checkFields() {
     isStudentInformationValid();
     isProfessorSelected();
     isTutorSelected();
+    isTimeSelected();
 }
 
 function getInputData(isStudyGroup) {
