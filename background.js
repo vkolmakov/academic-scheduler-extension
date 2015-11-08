@@ -1,6 +1,6 @@
 var dateText, datePickerDate, details, scheduledAppointments, isScheduled, tutorList;
 var popupData = [];
-var scheduledAppointmentRegex = /(.*\s.*)\s\((.*)\;\s(.*)\)\W{0,3}?\w{0,3}?\W{0,3}?\sw\/(\w*.{0,3}?)\W{0,3}?\w{0,3}?\W{0,3}?(\sNOTE:(.*))?/;
+var scheduledAppointmentRegex = /(.*?\s.*?)\s+?\.*?\((.*?)\s*?\W\s*?(\w.*?)\)\s*?w[\/\\i]?\s*(\w*.*?)\s*?(\sNOTE:(.*))?/;
 var calendarUrlRegex = /(https:\/\/www\.google\.com\/calendar.*)|(https:\/\/calendar\.google\.com\/calendar\/*)/;
 var settings, END_OF_THE_SEMETER;
 
@@ -241,7 +241,7 @@ function addDaysToDateString(dateString, days){
     var dateObject = new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]);
 
     dateObject.setDate(dateObject.getDate() + days);
-    return dateObject.toISOString().substring(0,10) + 'T00:00:00-05:00';
+    return dateObject.toISOString().substring(0,10) + 'T00:00:00-06:00';
 }
 
 function getProfessorsList(course) {
@@ -258,10 +258,13 @@ function getAvailableTutors(popupDate, popupTime, popupCourse){
 
     var weekDay = dayNames[dateObject.getDay()];
 
-    if(!settings.schedule[weekDay][time])
-        return []; // If day-time is not in schedule return empty list
-    tutorList = filterTutorList(settings.schedule[weekDay][time], popupCourse, dateObject, time);
-
+    try {
+        if(!settings.schedule[weekDay][time])
+            return []; // If day-time is not in schedule return empty list
+        tutorList = filterTutorList(settings.schedule[weekDay][time], popupCourse, dateObject, time);
+    } catch (error) {
+        return [];
+    }
     return tutorList;
 }
 
@@ -290,15 +293,20 @@ function filterTutorList(tempTutorList, popupCourse, dateObject, time){
 function getDateTimeString(dateObject, time){
     var date = dateObject.toISOString().substring(0,10);
     var timeString = time.toString();
-    return date + 'T' + (timeString[1]?timeString:"0"+timeString[0]) + ':00:00-05:00';
+    return date + 'T' + (timeString[1]?timeString:"0"+timeString[0]) + ':00:00';
 }
 
 function getAppointmentSummaries(startTime){
     var summaries = [];
-    for(i = 0; i < scheduledAppointments.length; i++){
-        if(scheduledAppointments[i].start.dateTime == startTime)
+    for(i = 0; i < scheduledAppointments.length; i++) {
+        try {
+        if(scheduledAppointments[i].start.dateTime.indexOf(startTime) > -1) // Check if startTime is a substring of event.start.dateTime
             summaries.push(scheduledAppointments[i].summary);
         }
+        catch(error){
+            console.log(error);
+        }
+    }
     return summaries;
 }
 

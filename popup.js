@@ -56,14 +56,16 @@ main = function() {
     $('#inputStudent, #inputPhone').keyup(function() {
         if(!isTutorSelected()) {
             displayErrorMessage(statusMessages.noTutorsAvailable);
-            return true;
         }
-        if(isStudentInformationValid() && isTutorSelected) {
+        else if(!isProfessorSelected()) {
+            displayErrorMessage(statusMessages.selectProfessor);
+        }
+        else if(!isStudentInformationValid()) {
+            displayErrorMessage(statusMessages.invalidInput);
+        }
+        else { // Ready to schedule
             displayMessage(statusMessages.readyToSchedule);
             $('#schedule-button').prop('disabled', false);
-        }
-        else {
-            displayErrorMessage(statusMessages.invalidInput);
         }
     });
 
@@ -71,12 +73,18 @@ main = function() {
         date = $('#inputDate').val();
         time = $('#inputTime').val();
         course = $('#inputCourse').val();
-        console.log(course);
         if (event.target.id == 'inputCourse') {
             updateProfessorsList(course);
             updateAvailableSlotsList(date, course);
         }
         updateTutorList(date, time, course);
+   });
+
+   $('#inputProfessor').change(function(event) {
+       if (isStudentInformationValid() && isTutorSelected() && isProfessorSelected()) {
+           displayMessage(statusMessages.readyToSchedule);
+           $('#schedule-button').prop('disabled', false);
+       }
    });
 
    chrome.runtime.sendMessage({method: 'popupClick'}, function(response) {
@@ -90,19 +98,29 @@ main = function() {
 
    // Populating time entries from background page
    chrome.runtime.getBackgroundPage(function (backgroundPage) {
-       var timeEntries = backgroundPage.timeEntries;
-       var courses = backgroundPage.settings.courses;
-       if(!courses) {
+        var timeEntries = backgroundPage.timeEntries;
+        var courses = backgroundPage.settings.courses;
+
+        if(!courses) {
             blockEverything(statusMessages.noSettingsFound);
             throw new Error(statusMessages.noSettingsFound);
         }
-       for(var key in timeEntries) {
-           $('<option/>').val(key).html(key).appendTo('#inputTime');
-       }
-       for(var course in courses) {
-           $('<option/>').val(course).html(course).appendTo('#inputCourse');
-       }
-       clearForms();
+
+        for(var key in timeEntries) {
+            $('<option/>').val(key).html(key).appendTo('#inputTime');
+        }
+
+        var courses_names = [];
+
+        for(var course in courses) {
+            courses_names.push(course);
+        }
+        courses_names.sort();
+
+        for(var i = 0; i < courses_names.length; i++) {
+            $('<option/>').val(courses_names[i]).html(courses_names[i]).appendTo('#inputCourse');
+        }
+        clearForms();
    });
 };
 
@@ -128,11 +146,11 @@ function changeStatus() {
                 displayErrorMessage(statusMessages.scheduledFailure);
             }
             else{
-                // Case where XHR request was not completed in 3 seconds
+                // Case where XHR request was not completed in 2.5 seconds
                 displayErrorMessage(statusMessages.scheduledUndetermined);
             }
         });
-    }, 3500);
+    }, 2500);
 }
 function animateDots(dots) {
     $('.status').append('.');
@@ -164,14 +182,16 @@ function updateProfessorsList(course) {
         return true;
     }
     chrome.runtime.sendMessage({method: 'getProfessorsList', course: course}, function(response) {
-        $('#inputProfessor').empty();
+        $('#inputProfessor').empty().append('<option value="" select disabled>Select Professor</option>');
             if(response) {
                 var professorsList = response;
                 for(var idx = 0; idx < professorsList.length; idx++)
                     $('<option/>').val(professorsList[idx]).html(professorsList[idx]).appendTo('#inputProfessor');
+                if(professorsList.length > 1) // 'forcing' to select a professor if required
+                    $('#inputProfessor').val('');
             }
             else {
-                $('#inputProfessor').empty();
+                $('#inputProfessor').empty().append('<option value="" select disabled>Select Professor</option>');
                 displayErrorMessage(statusMessages.noSettingsFound);
             }
     });
@@ -199,6 +219,8 @@ function updateTutorList(date, time, course) {
                 displayErrorMessage(statusMessages.noTutorsAvailable);
             else if(!isStudentInformationValid())
                 displayErrorMessage(statusMessages.invalidInput);
+            else if(!isProfessorSelected())
+                displayErrorMessage(statusMessages.selectProfessor);
             else {
                 displayMessage(statusMessages.readyToSchedule);
                 $('#schedule-button').prop('disabled', false);
@@ -215,6 +237,12 @@ function updateTutorList(date, time, course) {
 function isTutorSelected() {
     var tutorName = $('#inputTutor').val();
     if(tutorName === null)
+        return false;
+    else
+        return true;
+}
+function isProfessorSelected() {
+    if($('#inputProfessor').val() === null)
         return false;
     else
         return true;
@@ -352,7 +380,8 @@ var statusMessages = {
     'scheduledUndetermined': 'Reload the calendar and double-check the appointment status',
     'selectTime': 'Select time',
     'selectCourse': 'Select course',
-    'noSettingsFound': 'No settings file found. Make sure settings URL in settings is correct'
+    'noSettingsFound': 'No settings file found. Make sure settings URL in settings is correct',
+    'selectProfessor': 'Select a professor'
 };
 
 
