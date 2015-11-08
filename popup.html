@@ -10,13 +10,14 @@
 </head>
 <body>
     <div id="main">
-    <div class="btn-group">
-        <button type="button" class="btn btn-default btn-primary" id="individual-button">Individual</button>
-        <button type="button" class="btn btn-default" id="group-button">Study group</button>
-    </div>
-
-    <div class="status-div">
-        <p class="status text-right">Scheduling extension, select date/time/course</p>
+    <div class="header col-xs-12">
+        <div class="col-xs-4 btn-group">
+            <button type="button" class="btn btn-default btn-primary" id="individual-button">Individual</button>
+            <button type="button" class="btn btn-default" id="group-button">Study group</button>
+        </div>
+        <div class="col-xs-8">
+            <p class="status text-right">Scheduling extension, select date/time/course</p>
+        </div>
     </div>
 
     <div class="col-xs-4">
@@ -82,9 +83,9 @@
             </div>
 
             <div class="form-group">
-                <label for="inputPhone" class="control-label col-xs-3">Contact</label>
+                <label for="inputPhone" class="control-label col-xs-3"style="padding-left: 0px;">Contact</label>
                 <div class="col-xs-9">
-                    <input type="tel" class="form-control" id="inputPhone" placeholder="Phone number OR email">
+                    <input type="tel" class="form-control" id="inputPhone" placeholder="Phone OR email">
                 </div>
             </div>
             <div class="form-group">

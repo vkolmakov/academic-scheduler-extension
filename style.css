@@ -18,6 +18,10 @@ tr.slot-available {
     color: #337AB7;
 }
 
+.header {
+    display: -webkit-inline-box;
+}
+
 .group {
     background-color: #E6E6FA;
 }
@@ -39,6 +43,8 @@ tr.slot-available {
 }
 
 .status {
+    padding-top: 12px;
+    float: right;
     font-weight: bolder;
     color: #337AB7;
 }

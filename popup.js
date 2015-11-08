@@ -3,7 +3,7 @@ main = function() {
     var isStudyGroup = false;
 
     $('body').keyup(function(event) {
-        if(event.which == '0x0D' && isTutorSelected() && isStudentInformationValid())
+        if(event.which == '0x0D' && isTutorSelected() && isStudentInformationValid() && isProfessorSelected())
             scheduleButtonHandler(isStudyGroup);
     });
 
@@ -47,6 +47,7 @@ main = function() {
     });
 
     $('#inputTutor').change(function() {
+        checkFields();
         if(!isTutorSelected()) {
             displayErrorMessage(statusMessages.noTutorsAvailable);
             return true;
@@ -54,6 +55,7 @@ main = function() {
     });
 
     $('#inputStudent, #inputPhone').keyup(function() {
+        checkFields();
         if(!isTutorSelected()) {
             displayErrorMessage(statusMessages.noTutorsAvailable);
         }
@@ -70,6 +72,7 @@ main = function() {
     });
 
     $('#inputTime, #inputCourse').change(function(event) {
+        checkFields();
         date = $('#inputDate').val();
         time = $('#inputTime').val();
         course = $('#inputCourse').val();
@@ -81,6 +84,7 @@ main = function() {
    });
 
    $('#inputProfessor').change(function(event) {
+       checkFields();
        if (isStudentInformationValid() && isTutorSelected() && isProfessorSelected()) {
            displayMessage(statusMessages.readyToSchedule);
            $('#schedule-button').prop('disabled', false);
@@ -236,21 +240,31 @@ function updateTutorList(date, time, course) {
 
 function isTutorSelected() {
     var tutorName = $('#inputTutor').val();
-    if(tutorName === null)
+    if(tutorName === null) {
+        highlightField('error', '#inputTutor');
         return false;
-    else
+    }
+    else {
+        highlightField('success', '#inputTutor');
         return true;
+    }
 }
 function isProfessorSelected() {
-    if($('#inputProfessor').val() === null)
+    if($('#inputProfessor').val() === null) {
+        highlightField('error', '#inputProfessor');
         return false;
-    else
+    }
+    else {
+        highlightField('success', '#inputProfessor');
         return true;
+    }
 }
 
 function isStudentInformationValid() {
     var studentName = $('#inputStudent').val();
     var contactInfo = $('#inputPhone').val();
+    isValidName(studentName);
+    isValidContactInfo(contactInfo);
     if(isValidContactInfo(contactInfo) && isValidName(studentName))
         return true;
     else
@@ -260,19 +274,42 @@ function isStudentInformationValid() {
 function isValidContactInfo(contactInfo) {
     var contactInfoRegex = /(^(\()?(\d{3})(\))?[-\.\s]?(\d{3})[-\.\s]?(\d{4})$)|(^\S+@\S+\.\S+$)/;
     mo = contactInfoRegex.exec(contactInfo);
-    if(mo)
+    if(mo) {
+        highlightField('success', '#inputPhone');
         return true;
-    else
+    }
+    else {
+        highlightField('error', '#inputPhone');
         return false;
+    }
 }
 
 function isValidName(name) {
     var nameRegex = /.*\s.*/;
     mo = nameRegex.exec(name);
-    if(mo)
+    if(mo) {
+        highlightField('success', '#inputStudent');
         return true;
-    else
+    }
+    else {
+        highlightField('error', '#inputStudent');
         return false;
+    }
+}
+
+function highlightField(type, elementId) {
+    if(type == 'error') {
+        $(elementId).parent().parent().addClass('has-error');
+    }
+    else if(type == 'success') {
+        $(elementId).parent().parent().removeClass('has-error');
+    }
+}
+
+function checkFields() {
+    isStudentInformationValid();
+    isProfessorSelected();
+    isTutorSelected();
 }
 
 function getInputData(isStudyGroup) {
@@ -372,15 +409,15 @@ function getSlotRow(time, tutorList) {
 var statusMessages = {
     'noTutorsAvailable': 'There are no tutors available at given time',
     'defaultMessage': 'Scheduling extension, select date/time/course',
-    'readyToSchedule': 'Phone number/email and name are valid, appointment may be scheduled',
+    'readyToSchedule': 'Everything is valid, appointment may be scheduled',
     'scheduledInProccess': 'Trying to schedule an appointment',
     'invalidInput': 'Enter a valid phone number OR email address and student name',
-    'scheduledSuccess': 'Appointment has been scheduled, click Clear to schedule one more',
+    'scheduledSuccess': 'Appointment has been scheduled, click Clear to do start over',
     'scheduledFailure': 'Appointment was NOT scheduled',
     'scheduledUndetermined': 'Reload the calendar and double-check the appointment status',
     'selectTime': 'Select time',
     'selectCourse': 'Select course',
-    'noSettingsFound': 'No settings file found. Make sure settings URL in settings is correct',
+    'noSettingsFound': 'No settings file found. Make sure settings URL is correct',
     'selectProfessor': 'Select a professor'
 };
 

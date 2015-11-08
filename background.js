@@ -1,6 +1,6 @@
 var dateText, datePickerDate, details, scheduledAppointments, isScheduled, tutorList;
 var popupData = [];
-var scheduledAppointmentRegex = /(.*?)\s+?\((.*?)\s*?\W?\s*?(.*?)\)\s.*?[w](?:[\/\\\s]|(?:ith))+(\w*.*?)\s*?(\sNOTE:(.*))?/i;
+var scheduledAppointmentRegex = /(.*?)\s*?\((.*?)\s*?\W?\s*?(.*?)\).*?[w](?:[\/\\\s]|(?:ith))+(\w*.*?)\s*?(\sNOTE:(.*))?/i;
 var calendarUrlRegex = /(https:\/\/www\.google\.com\/calendar.*)|(https:\/\/calendar\.google\.com\/calendar\/*)/;
 var settings, END_OF_THE_SEMETER;
 
