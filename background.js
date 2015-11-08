@@ -30,7 +30,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
         // Set startDate and endDate + 1 day after set date in order to get relevant list of scheduled appointments
         startDate = addDaysToDateString(datePickerDate, 0);
         endDate = addDaysToDateString(datePickerDate, 1);
-
+        console.log("From event listener: ", startDate, endDate, datePickerDate);
         try {
             getScheduledAppointments(startDate, endDate);
         }
@@ -104,18 +104,21 @@ function rewriteRecurrenceDate(date){
 }
 
 function getScheduledAppointments(startTime, endTime) {
+    console.log(startTime, endTime);
     var scheduledAppointments = [];
+    var request_parameters = 'timeMin=' + startTime + '&timeMax=' + endTime + '&singleEvents=true';
     chrome.identity.getAuthToken({ 'interactive': true }, function(token) {
         var xhr = new XMLHttpRequest();
-        var requestUrl = 'https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=' + startTime + '&timeMax=' + endTime;
+        var requestUrl = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
         xhr.onreadystatechange = function() {
             if (this.readyState == 4 && this.status == 200) {
                 var resp = JSON.parse(this.responseText);
+                console.log("From getScheduledAppointments", resp);
                 scheduledAppointments = resp.items;
                 setScheduledAppointmentsList(scheduledAppointments);
             }
         };
-        xhr.open('GET', requestUrl , true);
+        xhr.open('GET', requestUrl + '?' + request_parameters, true);
         xhr.setRequestHeader('Authorization', 'Bearer ' + token);
         xhr.send();
     });
@@ -279,7 +282,6 @@ function filterTutorList(tempTutorList, popupCourse, dateObject, time){
     var startTime = getDateTimeString(dateObject, time);
     var summaries = getAppointmentSummaries(startTime);
     var busyTutors = getTutorsFromSummaries(summaries);
-
     tutorList = tutorList.filter(function(tutor){
         return busyTutors.indexOf(tutor) < 0;
     });
