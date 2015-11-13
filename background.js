@@ -6,6 +6,20 @@ var settings, END_OF_THE_SEMETER;
 
 //test requestUrl: 'https://api.myjson.com/bins/28euu';
 
+/*
+details object={'date': date,
+                'time': time,
+                'course': course,
+                'tutorName': tutorName,
+                'studentName': studentName,
+                'phoneNumber': phoneNumber,
+                'isStudyGroup': isStudyGroup,
+                'note': note,
+                'professorName': professorName,
+                'initials': initials
+    };
+*/
+
 updateSettings();
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
@@ -30,7 +44,6 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
         // Set startDate and endDate + 1 day after set date in order to get relevant list of scheduled appointments
         startDate = addDaysToDateString(datePickerDate, 0);
         endDate = addDaysToDateString(datePickerDate, 1);
-        console.log("From event listener: ", startDate, endDate, datePickerDate);
         try {
             getScheduledAppointments(startDate, endDate);
         }
@@ -137,7 +150,7 @@ function scheduleAppointment(details) {
     var endHour = (parseInt(startHour) + 1).toString();
     var startTime = getDateTimeString(new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]), startHour);
     var endTime = getDateTimeString(new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]), endHour);
-
+    var initials = details.initials.toUpperCase();
 
     if(details.isStudyGroup === true) {
         courseCode = settings.courses[details.course].code; // TEST
@@ -146,10 +159,12 @@ function scheduleAppointment(details) {
         descriptionText = rewritePhoneNumber(details.phoneNumber) + ' Students: ' + details.studentName;
     }
     else {
-        appointmentText = getAppointmentText(details.course, details.studentName, details.tutorName, details.note, details.professorName);
+        appointmentText = getAppointmentText(details);
         recurrenceText = null;
         descriptionText = rewritePhoneNumber(details.phoneNumber);
     }
+
+    descriptionText += '\nScheduled on ' + getTimeStamp() + ' by ' + details.initials.toUpperCase();
 
     var eventData = {
                     "summary": appointmentText,
@@ -207,11 +222,21 @@ function getAvailableSlots(date, course) {
 }
 
 /* Helper functions */
-// function selectRandomTutor(){
-//     tutorList.splice(tutorList.indexOf('I\'m feeling lucky!'), 1);
-//     var randomTutor = tutorList[Math.floor(Math.random() * tutorList.length)];
-//     return randomTutor;
-// }
+
+function getTimeStamp() {
+    var now = new Date();
+    var date = [now.getMonth() + 1, now.getDate(), now.getFullYear()];
+    var time = [now.getHours(), now.getMinutes()];
+    var suffix = (time[0] < 12) ? "AM" : "PM";
+    time[0] = (time[0] < 12) ? time[0] : time[0] - 12;
+    time[0] = time[0] || 12;
+
+    // If minutes are less than 10, add a zero
+    if(time[1] < 10)
+        time[i] = "0" + time[i];
+
+    return date.join("/") + " " + time.join(":") + " " + suffix;
+}
 
 function selectRandomTutor() {
     tutorList.splice(tutorList.indexOf('I\'m feeling lucky!'), 1);
@@ -228,9 +253,6 @@ function selectRandomTutor() {
             tutors_to_select.push(tutorList[i]);
 	    }
 	}
-
-    console.log(tutors_to_select);
-    console.log(min_num_courses);
 
     var randomTutor = tutors_to_select[Math.floor(Math.random() * tutors_to_select.length)];
     return randomTutor;
@@ -360,12 +382,14 @@ function getYearMonthDay(popupDate){
 
     return [year, month, day];
 }
-function getAppointmentText(courseName, studentName, tutorName, note, professorName) {
+function getAppointmentText(details) {
     // Takes appointment details and returns appointment text
-    var courseNumber = settings.courses[courseName].code;
-    var appointmentText = rewriteName(studentName) + " (" + courseNumber + "; " + professorName + ") " + "w/" + tutorName;
-    if(note)
-        appointmentText += (" NOTE: " + note);
+    var courseNumber = settings.courses[details.course].code;
+    var appointmentText = rewriteName(details.studentName) + " (" + courseNumber +
+                          "; " + details.professorName + ") " + "w/" + details.tutorName +
+                          ' - ' + details.initials.toUpperCase();
+    if(details.note)
+        appointmentText += (" NOTE: " + details.note);
     return appointmentText;
 }
 

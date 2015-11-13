@@ -41,7 +41,7 @@ main = function() {
         $('#inputTutor').empty();
         $('#inputTime').val('');
         $('#schedule-button').prop('disabled', true);
-        displayErrorMessage(statusMessages.selectTime);
+        checkFields();
         chrome.runtime.sendMessage({method: 'onDateUpdate', details: date});
         updateAvailableSlotsList(date, course);
     });
@@ -54,25 +54,14 @@ main = function() {
         }
     });
 
-    $('#inputStudent, #inputPhone').keyup(function() {
-        checkFields();
-        if(!isTutorSelected()) {
-            displayErrorMessage(statusMessages.noTutorsAvailable);
-        }
-        else if(!isProfessorSelected()) {
-            displayErrorMessage(statusMessages.selectProfessor);
-        }
-        else if(!isStudentInformationValid()) {
-            displayErrorMessage(statusMessages.invalidInput);
-        }
-        else { // Ready to schedule
+    $('#inputStudent, #inputPhone, #inputInitials').keyup(function() {
+        if(checkFields()) { // Ready to schedule
             displayMessage(statusMessages.readyToSchedule);
             $('#schedule-button').prop('disabled', false);
         }
     });
 
     $('#inputTime, #inputCourse').change(function(event) {
-        checkFields();
         date = $('#inputDate').val();
         time = $('#inputTime').val();
         course = $('#inputCourse').val();
@@ -81,11 +70,14 @@ main = function() {
             updateAvailableSlotsList(date, course);
         }
         updateTutorList(date, time, course);
+        if(checkFields()) {
+            displayMessage(statusMessages.readyToSchedule);
+            $('#schedule-button').prop('disabled', false);
+        }
    });
 
    $('#inputProfessor').change(function(event) {
-       checkFields();
-       if (isStudentInformationValid() && isTutorSelected() && isProfessorSelected()) {
+       if(checkFields()) {
            displayMessage(statusMessages.readyToSchedule);
            $('#schedule-button').prop('disabled', false);
        }
@@ -137,6 +129,13 @@ function scheduleButtonHandler(isStudyGroup) {
 }
 
 function changeStatus() {
+    $('input').each(function(index, value) {
+        $(this).parent().parent().removeClass('has-error');
+    });
+    $('select').each(function(index, value) {
+        $(this).parent().parent().removeClass('has-error');
+    });
+    
     displayMessage(statusMessages.scheduledInProccess);
     var printDots = setInterval(animateDots, 833);
     setTimeout(function() {
@@ -219,13 +218,7 @@ function updateTutorList(date, time, course) {
                 if (tutorList[idx] != '0') {
                     $('<option/>').val(tutorList[idx]).html(tutorList[idx]).appendTo('#inputTutor');
                 }
-            if(!isTutorSelected())
-                displayErrorMessage(statusMessages.noTutorsAvailable);
-            else if(!isStudentInformationValid())
-                displayErrorMessage(statusMessages.invalidInput);
-            else if(!isProfessorSelected())
-                displayErrorMessage(statusMessages.selectProfessor);
-            else {
+            if(checkFields()) {
                 displayMessage(statusMessages.readyToSchedule);
                 $('#schedule-button').prop('disabled', false);
             }
@@ -308,6 +301,20 @@ function isValidName(name) {
     }
 }
 
+function isSigned() {
+    var initials = $('#inputInitials').val();
+    var initialsRegex = /^[a-z]+$/i;
+    mo = initialsRegex.exec(initials);
+    if(mo) {
+        highlightField('success', '#inputInitials');
+        return true;
+    }
+    else {
+        highlightField('error', '#inputInitials');
+        return false;
+    }
+}
+
 function highlightField(type, elementId) {
     if(type == 'error') {
         $(elementId).parent().parent().addClass('has-error');
@@ -318,14 +325,40 @@ function highlightField(type, elementId) {
 }
 
 function checkFields() {
-    isStudentInformationValid();
+    /* Function that is called from every event listener that detemines if we are ready to schedule an appointment */
     isProfessorSelected();
+    isStudentInformationValid();
     isTutorSelected();
     isTimeSelected();
+    isSigned();
+    if(isProfessorSelected() && isStudentInformationValid() && isTutorSelected() && isTimeSelected() && isSigned()) {
+        return true; // That will highlight every field needed to be filled out and return true if eveyrhing is ok to schedule
+    }
+    // the following block of code will check fields in order of urgency and display an appropriate message
+    if(!isTimeSelected()) {
+        displayErrorMessage(statusMessages.selectTime);
+        return false;
+    }
+    if(!isTutorSelected()) {
+        displayErrorMessage(statusMessages.noTutorsAvailable);
+        return false;
+    }
+    if(!isProfessorSelected()) {
+        displayErrorMessage(statusMessages.selectProfessor);
+        return false;
+    }
+    if(!isStudentInformationValid()) {
+        displayErrorMessage(statusMessages.invalidInput);
+        return false;
+    }
+    if(!isSigned()) {
+        displayErrorMessage(statusMessages.noInitials);
+        return false;
+    }
 }
 
 function getInputData(isStudyGroup) {
-    // Returns contents of forms as a list
+    // Returns contents of forms as an object
     var date = $('#inputDate').val();
     var time = $('#inputTime').val();
     var course = $('#inputCourse').val();
@@ -334,6 +367,7 @@ function getInputData(isStudyGroup) {
     var phoneNumber = $('#inputPhone').val();
     var note = $('#inputNote').val();
     var professorName = $('#inputProfessor').val();
+    var initials = $('#inputInitials').val();
 
     if(note === '')
         note = null;
@@ -345,7 +379,8 @@ function getInputData(isStudyGroup) {
             'phoneNumber': phoneNumber,
             'isStudyGroup': isStudyGroup,
             'note': note,
-            'professorName': professorName
+            'professorName': professorName,
+            'initials': initials
         };
 }
 function disableInputs() {
@@ -374,11 +409,14 @@ function clearForms() {
     $('#inputTutor').empty();
     $('#schedule-button').prop('disabled', true);
     $('input').each(function(index, value) {
-        if($(this).val() != $('#inputDate').val())
+        if($(this).val() != $('#inputDate').val()) {
             $(this).val('');
+            $(this).parent().parent().removeClass('has-error');
+        }
     });
     $('select').each(function(index, value) {
         $(this).val('');
+        $(this).parent().parent().removeClass('has-error');
     });
 }
 
@@ -430,7 +468,8 @@ var statusMessages = {
     'selectTime': 'Select time',
     'selectCourse': 'Select course',
     'noSettingsFound': 'No settings file found. Make sure settings URL is correct',
-    'selectProfessor': 'Select a professor'
+    'selectProfessor': 'Select a professor',
+    'noInitials': 'Sign with your initials'
 };
 
 
