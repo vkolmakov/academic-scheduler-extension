@@ -8,6 +8,7 @@ function saveOptions() {
     }, function(){
         var status = document.getElementById('status');
         status.textContent = 'Options saved!';
+	chrome.runtime.sendMessage({'method': 'updateSettings'});
     });
 }
 

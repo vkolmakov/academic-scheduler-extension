@@ -86,6 +86,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
     else if(message.method == 'getSlotsList') {
         sendResponse(getAvailableSlots(message.date, message.course));
     }
+    else if(message.method == 'updateSettings') {
+	updateSettings();
+    }
 });
 
 function updateSettings() {
@@ -304,10 +307,11 @@ function filterTutorList(tempTutorList, popupCourse, dateObject, time){
     var startTime = getDateTimeString(dateObject, time);
     var summaries = getAppointmentSummaries(startTime);
     var busyTutors = getTutorsFromSummaries(summaries);
+    console.log(tutorList, busyTutors);
     tutorList = tutorList.filter(function(tutor){
-        return busyTutors.indexOf(tutor) < 0;
+        return busyTutors.indexOf(tutor.toLowerCase()) < 0;
     });
-
+    console.log(tutorList, busyTutors);
     // Add I'm feeling lucky option
     if(tutorList.length > 0)
         tutorList.unshift('I\'m feeling lucky!');
@@ -340,7 +344,7 @@ function getTutorsFromSummaries(summaries){
     for(i = 0; i < summaries.length; i++){
         var mo = scheduledAppointmentRegex.exec(summaries[i]);
         if(mo)
-            tutors.push(mo[4]);
+            tutors.push(mo[4].toLowerCase());
     }
     return tutors;
 }

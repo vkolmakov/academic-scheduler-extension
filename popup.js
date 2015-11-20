@@ -3,7 +3,7 @@ main = function() {
     var isStudyGroup = false;
 
     $('body').keyup(function(event) {
-        if(event.which == '0x0D' && isTutorSelected() && isStudentInformationValid() && isProfessorSelected())
+        if(event.which == '0x0D' && checkFields())
             scheduleButtonHandler(isStudyGroup);
     });
 
@@ -135,7 +135,7 @@ function changeStatus() {
     $('select').each(function(index, value) {
         $(this).parent().parent().removeClass('has-error');
     });
-    
+
     displayMessage(statusMessages.scheduledInProccess);
     var printDots = setInterval(animateDots, 833);
     setTimeout(function() {
