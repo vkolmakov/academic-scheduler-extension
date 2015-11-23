@@ -1,7 +1,10 @@
 main = function() {
-
     var isStudyGroup = false;
+    addEventListeners();
+    initialSetup();
+};
 
+function addEventListeners() {
     $('body').keyup(function(event) {
         if(event.which == '0x0D' && checkFields())
             scheduleButtonHandler(isStudyGroup);
@@ -74,26 +77,34 @@ main = function() {
             displayMessage(statusMessages.readyToSchedule);
             $('#schedule-button').prop('disabled', false);
         }
-   });
+    });
 
-   $('#inputProfessor').change(function(event) {
-       if(checkFields()) {
-           displayMessage(statusMessages.readyToSchedule);
-           $('#schedule-button').prop('disabled', false);
-       }
-   });
+    $('#inputProfessor').change(function(event) {
+	if(checkFields()) {
+            displayMessage(statusMessages.readyToSchedule);
+            $('#schedule-button').prop('disabled', false);
+	}
+    });
+}
 
-   chrome.runtime.sendMessage({method: 'popupClick'}, function(response) {
-       if(response.areSettingsPresent === false) {
-           blockEverything(statusMessages.noSettingsFound);
-           throw new Error(statusMessages.noSettingsFound);
-       }
-       var date = response.date;
-       $('#inputDate').attr("value", date);
-   });
+function initialSetup() {
+    setDate();
+    fillSelects();
+}
 
-   // Populating time entries from background page
-   chrome.runtime.getBackgroundPage(function (backgroundPage) {
+function setDate() {
+    chrome.runtime.sendMessage({method: 'popupClick'}, function(response) {
+	if(response.areSettingsPresent === false) {
+            blockEverything(statusMessages.noSettingsFound);
+            throw new Error(statusMessages.noSettingsFound);
+	}
+	var date = response.date;
+	$('#inputDate').attr("value", date);
+    });
+}
+
+function fillSelects() {
+    chrome.runtime.getBackgroundPage(function (backgroundPage) {
         var timeEntries = backgroundPage.timeEntries;
         var courses = backgroundPage.settings.courses;
 
@@ -117,8 +128,8 @@ main = function() {
             $('<option/>').val(courses_names[i]).html(courses_names[i]).appendTo('#inputCourse');
         }
         clearForms();
-   });
-};
+    });
+}
 
 function scheduleButtonHandler(isStudyGroup) {
     var input = getInputData(isStudyGroup);
@@ -186,17 +197,17 @@ function updateProfessorsList(course) {
     }
     chrome.runtime.sendMessage({method: 'getProfessorsList', course: course}, function(response) {
         $('#inputProfessor').empty().append('<option value="" select disabled>Select Professor</option>');
-            if(response) {
-                var professorsList = response;
-                for(var idx = 0; idx < professorsList.length; idx++)
-                    $('<option/>').val(professorsList[idx]).html(professorsList[idx]).appendTo('#inputProfessor');
-                if(professorsList.length > 1) // 'forcing' to select a professor if required
-                    $('#inputProfessor').val('');
-            }
-            else {
-                $('#inputProfessor').empty().append('<option value="" select disabled>Select Professor</option>');
-                displayErrorMessage(statusMessages.noSettingsFound);
-            }
+        if(response) {
+            var professorsList = response;
+            for(var idx = 0; idx < professorsList.length; idx++)
+                $('<option/>').val(professorsList[idx]).html(professorsList[idx]).appendTo('#inputProfessor');
+            if(professorsList.length > 1) // 'forcing' to select a professor if required
+                $('#inputProfessor').val('');
+        }
+        else {
+            $('#inputProfessor').empty().append('<option value="" select disabled>Select Professor</option>');
+            displayErrorMessage(statusMessages.noSettingsFound);
+        }
     });
 }
 
@@ -381,7 +392,7 @@ function getInputData(isStudyGroup) {
             'note': note,
             'professorName': professorName,
             'initials': initials
-        };
+           };
 }
 function disableInputs() {
     $('#schedule-button').prop('disabled', true);
