@@ -44,6 +44,7 @@ function addEventListeners() {
         $('#inputTutor').empty();
         $('#inputTime').val('');
         $('#schedule-button').prop('disabled', true);
+	fillSelects();
         checkFields();
         chrome.runtime.sendMessage({method: 'onDateUpdate', details: date});
         updateAvailableSlotsList(date, course);
@@ -104,16 +105,19 @@ function setDate() {
 }
 
 function fillSelects() {
+    var date = $('#inputDate').val();
     chrome.runtime.getBackgroundPage(function (backgroundPage) {
         var timeEntries = backgroundPage.timeEntries;
+	var weekDay = backgroundPage.getWeekDay(date);
+	var timeToDisplay = backgroundPage.settings[weekDay];
         var courses = backgroundPage.settings.courses;
-
+	
         if(!courses) {
             blockEverything(statusMessages.noSettingsFound);
             throw new Error(statusMessages.noSettingsFound);
         }
 
-        for(var key in timeEntries) {
+        for(var key in timeEntries) { // TODO: Add check if present in timeToDisplay
             $('<option/>').val(key).html(key).appendTo('#inputTime');
         }
 

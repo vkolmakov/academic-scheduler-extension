@@ -7,17 +7,17 @@ var settings, END_OF_THE_SEMETER;
 //test requestUrl: 'https://api.myjson.com/bins/28euu';
 
 /*
-details object={'date': date,
-                'time': time,
-                'course': course,
-                'tutorName': tutorName,
-                'studentName': studentName,
-                'phoneNumber': phoneNumber,
-                'isStudyGroup': isStudyGroup,
-                'note': note,
-                'professorName': professorName,
-                'initials': initials
-    };
+  details object={'date': date,
+  'time': time,
+  'course': course,
+  'tutorName': tutorName,
+  'studentName': studentName,
+  'phoneNumber': phoneNumber,
+  'isStudyGroup': isStudyGroup,
+  'note': note,
+  'professorName': professorName,
+  'initials': initials
+  };
 */
 
 updateSettings();
@@ -27,7 +27,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
         chrome.tabs.executeScript(tabId, {file: "content_script.js"}); // every time url is updated run content script again in order to get a new date
     else
         return true;
-    });
+});
 
 chrome.storage.onChanged.addListener(function(changes, namespace) {
     updateSettings();
@@ -52,9 +52,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
         }
 
         response = {
-                     'date': datePickerDate,
-                     'areSettingsPresent': areSettingsPresent(),
-                   };
+            'date': datePickerDate,
+            'areSettingsPresent': areSettingsPresent(),
+        };
         sendResponse(response);
     }
     else if(message.method == 'onDateUpdate') {
@@ -170,21 +170,21 @@ function scheduleAppointment(details) {
     descriptionText += '\nScheduled on ' + getTimeStamp() + ' by ' + details.initials.toUpperCase();
 
     var eventData = {
-                    "summary": appointmentText,
-                    "start": {
-                        "dateTime": startTime,
-                        'timeZone': 'America/Chicago'
-                    },
-                    "end": {
-                        "dateTime": endTime,
-                        'timeZone': 'America/Chicago'
-                    },
-                    "recurrence": [
-                        recurrenceText
-                    ],
-                    "colorId": settings.courses[details.course].color, // TEST
-                    "description" : descriptionText
-                };
+        "summary": appointmentText,
+        "start": {
+            "dateTime": startTime,
+            'timeZone': 'America/Chicago'
+        },
+        "end": {
+            "dateTime": endTime,
+            'timeZone': 'America/Chicago'
+        },
+        "recurrence": [
+            recurrenceText
+        ],
+        "colorId": settings.courses[details.course].color, // TEST
+        "description" : descriptionText
+    };
 
 
     chrome.identity.getAuthToken({ 'interactive': true }, function(token) {
@@ -246,16 +246,16 @@ function selectRandomTutor() {
     var min_num_courses = settings.tutors[tutorList[0]].length;
     var tutors_to_select = [];
     tutors_to_select.push(tutorList[0]);
-	for(var i = 0; i < tutorList.length; i++) {
+    for(var i = 0; i < tutorList.length; i++) {
         var num_courses = settings.tutors[tutorList[i]].length;
         if (num_courses  == min_num_courses)
-        	tutors_to_select.push(tutorList[i]);
+            tutors_to_select.push(tutorList[i]);
     	else if(num_courses  < min_num_courses) {
             min_num_courses = num_courses; // Resetting the minumum
             tutors_to_select = [];
             tutors_to_select.push(tutorList[i]);
-	    }
 	}
+    }
 
     var randomTutor = tutors_to_select[Math.floor(Math.random() * tutors_to_select.length)];
     return randomTutor;
@@ -279,13 +279,8 @@ function getProfessorsList(course) {
 function getAvailableTutors(popupDate, popupTime, popupCourse){
     var tutorList = [];
     var time = timeEntries[popupTime];
-    var YearMonthDay = getYearMonthDay(popupDate);
-    if(!YearMonthDay)
-        return null;
-    var dateObject = new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]);
-
-    var weekDay = dayNames[dateObject.getDay()];
-
+    var weekDay = getWeekDay(popupDate);
+    
     try {
         if(!settings.schedule[weekDay][time])
             return []; // If day-time is not in schedule return empty list
@@ -295,6 +290,16 @@ function getAvailableTutors(popupDate, popupTime, popupCourse){
         return [];
     }
     return tutorList;
+}
+
+function getWeekDay(date) {
+    var YearMonthDay = getYearMonthDay(popupDate);
+    if(!YearMonthDay)
+        return null;
+    var dateObject = new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]);
+
+    var weekDay = dayNames[dateObject.getDay()];
+    return weekDay;
 }
 
 function filterTutorList(tempTutorList, popupCourse, dateObject, time){
@@ -329,8 +334,8 @@ function getAppointmentSummaries(startTime){
     var summaries = [];
     for(i = 0; i < scheduledAppointments.length; i++) {
         try {
-        if(scheduledAppointments[i].start.dateTime.indexOf(startTime) > -1) // Check if startTime is a substring of event.start.dateTime
-            summaries.push(scheduledAppointments[i].summary);
+            if(scheduledAppointments[i].start.dateTime.indexOf(startTime) > -1) // Check if startTime is a substring of event.start.dateTime
+		summaries.push(scheduledAppointments[i].summary);
         }
         catch(error){
             console.log(error);
@@ -366,10 +371,10 @@ function isAbleToTuror(tutorName, course){
 }
 
 function contains(array, element){
-  for(var i = 0; i < array.length; i++){
-    if(array[i] === element) return true;
-  }
-  return false;
+    for(var i = 0; i < array.length; i++){
+	if(array[i] === element) return true;
+    }
+    return false;
 }
 
 function getYearMonthDay(popupDate){
@@ -390,8 +395,8 @@ function getAppointmentText(details) {
     // Takes appointment details and returns appointment text
     var courseNumber = settings.courses[details.course].code;
     var appointmentText = rewriteName(details.studentName) + " (" + courseNumber +
-                          "; " + details.professorName + ") " + "w/" + details.tutorName +
-                          ' - ' + details.initials.toUpperCase();
+        "; " + details.professorName + ") " + "w/" + details.tutorName +
+        ' - ' + details.initials.toUpperCase();
     if(details.note)
         appointmentText += (" NOTE: " + details.note);
     return appointmentText;
@@ -451,24 +456,24 @@ function getMonth(month) {
 }
 
 var dayNames = new Array(
-  'Sunday',
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday'
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday'
 );
 
 
 var timeEntries = {'9:00am': '9',
-               '10:00am': '10',
-               '11:00am': '11',
-               '12:00pm': '12',
-               '1:00pm': '13',
-               '2:00pm': '14',
-               '3:00pm': '15',
-               '4:00pm': '16',
-               '5:00pm': '17',
-               '6:00pm': '18',
-               '7:00pm': '19'};
+		   '10:00am': '10',
+		   '11:00am': '11',
+		   '12:00pm': '12',
+		   '1:00pm': '13',
+		   '2:00pm': '14',
+		   '3:00pm': '15',
+		   '4:00pm': '16',
+		   '5:00pm': '17',
+		   '6:00pm': '18',
+		   '7:00pm': '19'};
