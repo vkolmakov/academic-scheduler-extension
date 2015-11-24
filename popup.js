@@ -89,11 +89,10 @@ function addEventListeners() {
 }
 
 function initialSetup() {
-    setDate();
-    fillSelects();
+    setDate(fillSelects)
 }
 
-function setDate() {
+function setDate(callback) {
     chrome.runtime.sendMessage({method: 'popupClick'}, function(response) {
 	if(response.areSettingsPresent === false) {
             blockEverything(statusMessages.noSettingsFound);
@@ -101,24 +100,26 @@ function setDate() {
 	}
 	var date = response.date;
 	$('#inputDate').attr("value", date);
+	callback(date);
     });
 }
 
-function fillSelects() {
-    var date = $('#inputDate').val();
+function fillSelects(date) {
     chrome.runtime.getBackgroundPage(function (backgroundPage) {
-        var timeEntries = backgroundPage.timeEntries;
+	var timeEntries = backgroundPage.timeEntries;
 	var weekDay = backgroundPage.getWeekDay(date);
-	var timeToDisplay = backgroundPage.settings[weekDay];
+	var timeToDisplay = Object.keys(backgroundPage.settings.schedule[weekDay]);
         var courses = backgroundPage.settings.courses;
-	
+
         if(!courses) {
             blockEverything(statusMessages.noSettingsFound);
             throw new Error(statusMessages.noSettingsFound);
         }
 
-        for(var key in timeEntries) { // TODO: Add check if present in timeToDisplay
-            $('<option/>').val(key).html(key).appendTo('#inputTime');
+        for(var key in timeEntries) {
+	    // Checking if time is listed in schedule
+	    if(backgroundPage.contains(timeToDisplay, timeEntries[key]))
+		$('<option/>').val(key).html(key).appendTo('#inputTime');
         }
 
         var courses_names = [];

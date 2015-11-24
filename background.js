@@ -303,9 +303,19 @@ function getWeekDay(popupDate) {
     return weekDay;
 }
 
+/**
+ * Takes tempTutorList and subtarcts tutors that are not able to tutor given course and tutors that have
+ * already been taken
+ * @param {List} tempTutorList - full tutor list
+ * @param {String} popupCourse - course name from popup
+ * @param {String} popupDate - date from popup
+ * @param {String} popupTime - time from popup
+ * @return {List} tutorList - complete list of available tutors + "I'm feeling lucky" option on top if any tutors are available
+ */
 function filterTutorList(tempTutorList, popupCourse, popupDate, popupTime){
     var tutorList = [];
     var time = timeEntries[popupTime];
+    // Add only tutors that can tutor given course
     for(var i = 0; i < tempTutorList.length; i++){
         if(isAbleToTuror(tempTutorList[i], popupCourse)) tutorList.push(tempTutorList[i]);
     }
@@ -472,9 +482,13 @@ var dayNames = new Array(
 
 
 var timeEntries = {'9:00am': '9',
+		   '9:30am': '9.5',
 		   '10:00am': '10',
+		   '10:30am': '10.5',
 		   '11:00am': '11',
+		   '11:30am': '11.5',
 		   '12:00pm': '12',
+		   '12:30pm': '12.5',
 		   '1:00pm': '13',
 		   '2:00pm': '14',
 		   '3:00pm': '15',
