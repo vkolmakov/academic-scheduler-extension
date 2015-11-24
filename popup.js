@@ -445,9 +445,13 @@ function updateAvailableSlotsList(date, course) {
     chrome.runtime.sendMessage({method: 'getSlotsList', date: date, course: course}, function(response){
         chrome.runtime.getBackgroundPage(function (backgroundPage) {
             var timeEntries = backgroundPage.timeEntries;
+	    var weekDay = backgroundPage.getWeekDay(date);
+	    var timeToDisplay = Object.keys(backgroundPage.settings.schedule[weekDay]);
             for(var currentTime in response) { //TODO: Make sure that order is correct
-                var $row = getSlotRow(currentTime, response[currentTime]);
-                $('#available-slots-list').append($row);
+		if(backgroundPage.contains(timeToDisplay, timeEntries[currentTime])) {
+		    var $row = getSlotRow(currentTime, response[currentTime]);
+                    $('#available-slots-list').append($row);
+		}
             }
             $('html').height($('#main').height());
         });
