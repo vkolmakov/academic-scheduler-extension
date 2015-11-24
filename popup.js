@@ -44,7 +44,7 @@ function addEventListeners() {
         $('#inputTutor').empty();
         $('#inputTime').val('');
         $('#schedule-button').prop('disabled', true);
-	fillSelects();
+	fillTimeSelect(date);
         checkFields();
         chrome.runtime.sendMessage({method: 'onDateUpdate', details: date});
         updateAvailableSlotsList(date, course);
@@ -89,7 +89,28 @@ function addEventListeners() {
 }
 
 function initialSetup() {
-    setDate(fillSelects)
+    fillCourses();
+    setDate(fillTimeSelect);
+}
+
+function fillCourses() {
+    chrome.runtime.getBackgroundPage(function(backgroundPage) {
+	var courses = backgroundPage.settings.courses;
+	if(!courses) {
+            blockEverything(statusMessages.noSettingsFound);
+            throw new Error(statusMessages.noSettingsFound);
+	}
+	var courses_names = [];
+
+        for(var course in courses) {
+            courses_names.push(course);
+        }
+        courses_names.sort();
+
+        for(var i = 0; i < courses_names.length; i++) {
+            $('<option/>').val(courses_names[i]).html(courses_names[i]).appendTo('#inputCourse');
+        }
+    });
 }
 
 function setDate(callback) {
@@ -104,35 +125,20 @@ function setDate(callback) {
     });
 }
 
-function fillSelects(date) {
+function fillTimeSelect(date) {
     chrome.runtime.getBackgroundPage(function (backgroundPage) {
+	
+	$("#inputTime option[value!='']").remove();
+	
 	var timeEntries = backgroundPage.timeEntries;
 	var weekDay = backgroundPage.getWeekDay(date);
 	var timeToDisplay = Object.keys(backgroundPage.settings.schedule[weekDay]);
-        var courses = backgroundPage.settings.courses;
-
-        if(!courses) {
-            blockEverything(statusMessages.noSettingsFound);
-            throw new Error(statusMessages.noSettingsFound);
-        }
-
         for(var key in timeEntries) {
 	    // Checking if time is listed in schedule
 	    if(backgroundPage.contains(timeToDisplay, timeEntries[key]))
 		$('<option/>').val(key).html(key).appendTo('#inputTime');
-        }
-
-        var courses_names = [];
-
-        for(var course in courses) {
-            courses_names.push(course);
-        }
-        courses_names.sort();
-
-        for(var i = 0; i < courses_names.length; i++) {
-            $('<option/>').val(courses_names[i]).html(courses_names[i]).appendTo('#inputCourse');
-        }
-        clearForms();
+	}
+	$('#inputTime').val('');
     });
 }
 
