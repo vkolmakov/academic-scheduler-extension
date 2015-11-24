@@ -284,7 +284,7 @@ function getAvailableTutors(popupDate, popupTime, popupCourse){
     try {
         if(!settings.schedule[weekDay][time])
             return []; // If day-time is not in schedule return empty list
-        tutorList = filterTutorList(settings.schedule[weekDay][time], popupCourse, dateObject, time);
+        tutorList = filterTutorList(settings.schedule[weekDay][time], popupCourse, popupDate, popupTime);
     } catch (error) {
         console.log(error);
         return [];
@@ -292,23 +292,28 @@ function getAvailableTutors(popupDate, popupTime, popupCourse){
     return tutorList;
 }
 
-function getWeekDay(date) {
+function getWeekDay(popupDate) {
     var YearMonthDay = getYearMonthDay(popupDate);
     if(!YearMonthDay)
         return null;
     var dateObject = new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]);
 
     var weekDay = dayNames[dateObject.getDay()];
+    console.log(weekDay);
     return weekDay;
 }
 
-function filterTutorList(tempTutorList, popupCourse, dateObject, time){
+function filterTutorList(tempTutorList, popupCourse, popupDate, popupTime){
     var tutorList = [];
+    var time = timeEntries[popupTime];
     for(var i = 0; i < tempTutorList.length; i++){
         if(isAbleToTuror(tempTutorList[i], popupCourse)) tutorList.push(tempTutorList[i]);
     }
-
     // Get appointments that are only at a certain day + time and extract busy tutors from them
+    var YearMonthDay = getYearMonthDay(popupDate);
+    if(!YearMonthDay)
+        return null;
+    var dateObject = new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]);
     var startTime = getDateTimeString(dateObject, time);
     var summaries = getAppointmentSummaries(startTime);
     var busyTutors = getTutorsFromSummaries(summaries);
