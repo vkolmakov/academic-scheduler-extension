@@ -86,6 +86,7 @@ function addEventListeners() {
 }
 
 function initialSetup() {
+    $('#schedule-button').prop('disabled', true);
     fillCourses();
     setDate(fillTimeSelect);
 }
@@ -127,9 +128,12 @@ function fillTimeSelect(date) {
 	
 	$("#inputTime option[value!='']").remove();
 	
-	var timeEntries = backgroundPage.timeEntries;
+	var timeEntries = backgroundPage.getTimeEntries();
+	console.log(timeEntries);
 	var weekDay = backgroundPage.getWeekDay(date);
+	console.log(weekDay);
 	var timeToDisplay = Object.keys(backgroundPage.settings.schedule[weekDay]);
+	console.log(timeToDisplay);
         for(var key in timeEntries) {
 	    // Checking if time is listed in schedule
 	    if(backgroundPage.contains(timeToDisplay, timeEntries[key]))
@@ -448,8 +452,8 @@ function updateAvailableSlotsList(date, course) {
     }
     chrome.runtime.sendMessage({method: 'getSlotsList', date: date, course: course}, function(response){
         chrome.runtime.getBackgroundPage(function (backgroundPage) {
-            var timeEntries = backgroundPage.timeEntries;
-	    var weekDay = backgroundPage.getWeekDay(date);
+            var timeEntries = backgroundPage.getTimeEntries();
+	    var weekDay = backgroundPage.getWeekDay(date);	   
 	    var timeToDisplay = Object.keys(backgroundPage.settings.schedule[weekDay]);
             for(var currentTime in response) { //TODO: Make sure that order is correct
 		if(backgroundPage.contains(timeToDisplay, timeEntries[currentTime])) {

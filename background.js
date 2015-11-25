@@ -1,8 +1,4 @@
-var dateText, datePickerDate, details, scheduledAppointments, isScheduled, tutorList;
-var popupData = [];
-var scheduledAppointmentRegex = /(.*?)\s*?\((.*?)\s*?\W?\s*?(.*?)\).*?[w](?:[\/\\\s]|(?:ith))+(\w*.*?)\s*?(\sNOTE:(.*))?/i;
-var calendarUrlRegex = /(https:\/\/www\.google\.com\/calendar.*)|(https:\/\/calendar\.google\.com\/calendar\/*)/;
-var settings, END_OF_THE_SEMETER;
+
 
 //test requestUrl: 'https://api.myjson.com/bins/28euu';
 
@@ -20,76 +16,88 @@ var settings, END_OF_THE_SEMETER;
   };
 */
 
-updateSettings();
-
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-    if(calendarUrlRegex.exec(tab.url))
-        chrome.tabs.executeScript(tabId, {file: "content_script.js"}); // every time url is updated run content script again in order to get a new date
-    else
-        return true;
-});
-
-chrome.storage.onChanged.addListener(function(changes, namespace) {
+main = function() {
+    var scheduledAppointments, isScheduled, tutorList;
+    var settings, END_OF_THE_SEMETER;
+    
     updateSettings();
-});
+    addEventListeners();    
+}
 
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
-    var startDate, endDate;
-    if(message.method == 'getDate') {
-        dateText = message.dateText;
-        return true;
-    }
-    else if(message.method == 'popupClick') {
-        datePickerDate = convertToDatepickerDate(dateText);
-        // Set startDate and endDate + 1 day after set date in order to get relevant list of scheduled appointments
-        startDate = addDaysToDateString(datePickerDate, 0);
-        endDate = addDaysToDateString(datePickerDate, 1);
-        try {
-            getScheduledAppointments(startDate, endDate);
-        }
-        catch(error) {
-            console.log(error);
-        }
-
-        response = {
-            'date': datePickerDate,
-            'areSettingsPresent': areSettingsPresent(),
-        };
-        sendResponse(response);
-    }
-    else if(message.method == 'onDateUpdate') {
-        datePickerDate = message.details;
-
-        startDate = addDaysToDateString(datePickerDate, 0);
-        endDate = addDaysToDateString(datePickerDate, 1);
-
-        if(!startDate)
+function addEventListeners() {
+    var calendarUrlRegex = /(https:\/\/www\.google\.com\/calendar.*)|(https:\/\/calendar\.google\.com\/calendar\/*)/;
+    var timeEntries = getTimeEntries();
+    var dateText, datePickerDate;
+    
+    chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+	if(calendarUrlRegex.exec(tab.url))
+            chrome.tabs.executeScript(tabId, {file: "content_script.js"}); // every time url is updated run content script again in order to get a new date
+	else
             return true;
-
-        getScheduledAppointments(startDate, endDate);
-    }
-    else if(message.method == 'schedule') {
-        scheduleAppointment(message.details);
-        return true;
-    }
-    else if(message.method == 'getTutorList') {
-        tutorList = [];
-        tutorList = getAvailableTutors(message.popupDate, message.popupTime, message.popupCourse);
-        sendResponse(tutorList);
-    }
-    else if(message.method == 'getStatus') {
-        sendResponse(isScheduled);
-    }
-    else if(message.method == 'getProfessorsList') {
-        sendResponse(getProfessorsList(message.course));
-    }
-    else if(message.method == 'getSlotsList') {
-        sendResponse(getAvailableSlots(message.date, message.course));
-    }
-    else if(message.method == 'updateSettings') {
+    });
+    
+    chrome.storage.onChanged.addListener(function(changes, namespace) {
 	updateSettings();
-    }
-});
+    });
+
+    chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
+	var startDate, endDate;
+	if(message.method == 'getDate') {
+            dateText = message.dateText;
+            return true;
+	}
+	else if(message.method == 'popupClick') {
+            datePickerDate = convertToDatepickerDate(dateText);
+            // Set startDate and endDate + 1 day after set date in order to get relevant list of scheduled appointments
+            startDate = addDaysToDateString(datePickerDate, 0);
+            endDate = addDaysToDateString(datePickerDate, 1);
+            try {
+		getScheduledAppointments(startDate, endDate);
+            }
+            catch(error) {
+		console.log(error);
+            }
+
+            response = {
+		'date': datePickerDate,
+		'areSettingsPresent': areSettingsPresent(),
+            };
+            sendResponse(response);
+	}
+	else if(message.method == 'onDateUpdate') {
+            datePickerDate = message.details;
+
+            startDate = addDaysToDateString(datePickerDate, 0);
+            endDate = addDaysToDateString(datePickerDate, 1);
+
+            if(!startDate)
+		return true;
+
+            getScheduledAppointments(startDate, endDate);
+	}
+	else if(message.method == 'schedule') {
+            scheduleAppointment(message.details, timeEntries);
+            return true;
+	}
+	else if(message.method == 'getTutorList') {
+            tutorList = [];
+            tutorList = getAvailableTutors(message.popupDate, message.popupTime, message.popupCourse, timeEntries);
+            sendResponse(tutorList);
+	}
+	else if(message.method == 'getStatus') {
+            sendResponse(isScheduled);
+	}
+	else if(message.method == 'getProfessorsList') {
+            sendResponse(getProfessorsList(message.course));
+	}
+	else if(message.method == 'getSlotsList') {
+            sendResponse(getAvailableSlots(message.date, message.course, timeEntries));
+	}
+	else if(message.method == 'updateSettings') {
+	    updateSettings();
+	}
+    });
+}
 
 function updateSettings() {
     chrome.storage.sync.get(function(items){
@@ -120,7 +128,6 @@ function rewriteRecurrenceDate(date){
 }
 
 function getScheduledAppointments(startTime, endTime) {
-    console.log(startTime, endTime);
     var scheduledAppointments = [];
     var request_parameters = 'timeMin=' + startTime + '&timeMax=' + endTime + '&singleEvents=true';
     chrome.identity.getAuthToken({ 'interactive': true }, function(token) {
@@ -129,7 +136,6 @@ function getScheduledAppointments(startTime, endTime) {
         xhr.onreadystatechange = function() {
             if (this.readyState == 4 && this.status == 200) {
                 var resp = JSON.parse(this.responseText);
-                console.log("From getScheduledAppointments", resp);
                 scheduledAppointments = resp.items;
                 setScheduledAppointmentsList(scheduledAppointments);
             }
@@ -144,7 +150,7 @@ function setScheduledAppointmentsList(array){
     scheduledAppointments = array;
 }
 
-function scheduleAppointment(details) {
+function scheduleAppointment(details, timeEntries) {
     if(details.tutorName == 'I\'m feeling lucky!')
         details.tutorName = selectRandomTutor();
     var appointmentText;
@@ -214,10 +220,10 @@ function areSettingsPresent(){
         return true;
 }
 
-function getAvailableSlots(date, course) {
+function getAvailableSlots(date, course, timeEntries) {
     var availableSlots = {};
     for(var currentTime in timeEntries) {
-        var tutorList = getAvailableTutors(date, currentTime, course);
+        var tutorList = getAvailableTutors(date, currentTime, course, timeEntries);
         tutorList.splice(tutorList.indexOf('I\'m feeling lucky!'), 1);
         availableSlots[currentTime] = tutorList; // TODO: Make sure that they are in correct oreder
     }
@@ -230,13 +236,13 @@ function getTimeStamp() {
     var now = new Date();
     var date = [now.getMonth() + 1, now.getDate(), now.getFullYear()];
     var time = [now.getHours(), now.getMinutes()];
-    var suffix = (time[0] < 12) ? "AM" : "PM";
+    var suffix = (time[0] < 12) ? "am" : "pm";
     time[0] = (time[0] < 12) ? time[0] : time[0] - 12;
     time[0] = time[0] || 12;
 
     // If minutes are less than 10, add a zero
     if(time[1] < 10)
-        time[i] = "0" + time[i];
+        time[1] = "0" + time[1];
 
     return date.join("/") + " " + time.join(":") + " " + suffix;
 }
@@ -276,15 +282,14 @@ function getProfessorsList(course) {
     return settings.professors[settings.courses[course].code];
 }
 
-function getAvailableTutors(popupDate, popupTime, popupCourse){
+function getAvailableTutors(popupDate, popupTime, popupCourse, timeEntries){
     var tutorList = [];
     var time = timeEntries[popupTime];
     var weekDay = getWeekDay(popupDate);
-    
     try {
         if(!settings.schedule[weekDay][time])
             return []; // If day-time is not in schedule return empty list
-        tutorList = filterTutorList(settings.schedule[weekDay][time], popupCourse, popupDate, popupTime);
+        tutorList = filterTutorList(settings.schedule[weekDay][time], popupCourse, popupDate, popupTime, timeEntries);
     } catch (error) {
         console.log(error);
         return [];
@@ -299,7 +304,6 @@ function getWeekDay(popupDate) {
     var dateObject = new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]);
 
     var weekDay = dayNames[dateObject.getDay()];
-    console.log(weekDay);
     return weekDay;
 }
 
@@ -312,7 +316,7 @@ function getWeekDay(popupDate) {
  * @param {String} popupTime - time from popup
  * @return {List} tutorList - complete list of available tutors + "I'm feeling lucky" option on top if any tutors are available
  */
-function filterTutorList(tempTutorList, popupCourse, popupDate, popupTime){
+function filterTutorList(tempTutorList, popupCourse, popupDate, popupTime, timeEntries){
     var tutorList = [];
     var time = timeEntries[popupTime];
     // Add only tutors that can tutor given course
@@ -327,11 +331,9 @@ function filterTutorList(tempTutorList, popupCourse, popupDate, popupTime){
     var startTime = getDateTimeString(dateObject, time);
     var summaries = getAppointmentSummaries(startTime);
     var busyTutors = getTutorsFromSummaries(summaries);
-    console.log(tutorList, busyTutors);
     tutorList = tutorList.filter(function(tutor){
         return busyTutors.indexOf(tutor.toLowerCase()) < 0;
     });
-    console.log(tutorList, busyTutors);
     // Add I'm feeling lucky option
     if(tutorList.length > 0)
         tutorList.unshift('I\'m feeling lucky!');
@@ -360,6 +362,7 @@ function getAppointmentSummaries(startTime){
 }
 
 function getTutorsFromSummaries(summaries){
+    var scheduledAppointmentRegex = /(.*?)\s*?\((.*?)\s*?\W?\s*?(.*?)\).*?[w](?:[\/\\\s]|(?:ith))+(\w*.*?)\s*?(\sNOTE:(.*))?/i;
     var tutors = [];
     for(i = 0; i < summaries.length; i++){
         var mo = scheduledAppointmentRegex.exec(summaries[i]);
@@ -480,19 +483,20 @@ var dayNames = new Array(
     'Saturday'
 );
 
+function getTimeEntries() {
+    var time_entries = {};
 
-var timeEntries = {'9:00am': '9',
-		   '9:30am': '9.5',
-		   '10:00am': '10',
-		   '10:30am': '10.5',
-		   '11:00am': '11',
-		   '11:30am': '11.5',
-		   '12:00pm': '12',
-		   '12:30pm': '12.5',
-		   '1:00pm': '13',
-		   '2:00pm': '14',
-		   '3:00pm': '15',
-		   '4:00pm': '16',
-		   '5:00pm': '17',
-		   '6:00pm': '18',
-		   '7:00pm': '19'};
+    for(var i = 6; i < 21; i +=1) {
+	var time = [];
+	time[0] = i % 12 - i % 1;
+	time[0] = (!time[0]) ? '12' : time[0].toString();
+	time[1] = (i % 1) * 60;
+	time[1] = (time[1] < 10) ? '0' + time[1] : time[1].toString();
+	var postfix = Math.floor(i / 12) == 0 ? 'am' : 'pm';
+	key = time.join(':') + postfix;
+	time_entries[key] = i.toString();
+    }
+    return time_entries;
+}
+
+document.addEventListener('DOMContentLoaded', main, false);
