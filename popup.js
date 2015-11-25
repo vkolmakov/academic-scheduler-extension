@@ -1,5 +1,4 @@
 main = function() {
-    var isStudyGroup = false;
     addEventListeners();
     initialSetup();
 };
@@ -7,11 +6,10 @@ main = function() {
 function addEventListeners() {
     $('body').keyup(function(event) {
         if(event.which == '0x0D' && checkFields())
-            scheduleButtonHandler(isStudyGroup);
+            scheduleButtonHandler();
     });
 
     $('#individual-button').click(function() {
-        isStudyGroup = false;
         $('#group-button').removeClass('btn-primary');
         $('#inputNote').prop('disabled', false);
         $(this).addClass('btn-primary');
@@ -20,7 +18,6 @@ function addEventListeners() {
     });
 
     $('#group-button').click(function() {
-        isStudyGroup = true;
         $('#individual-button').removeClass('btn-primary');
         $('#inputNote').prop('disabled', true);
         $('#inputNote').val('');
@@ -30,7 +27,7 @@ function addEventListeners() {
     });
 
     $('#schedule-button').click(function() {
-        scheduleButtonHandler(isStudyGroup);
+        scheduleButtonHandler();
     });
 
     $('#clear-button').click(function() {
@@ -142,8 +139,8 @@ function fillTimeSelect(date) {
     });
 }
 
-function scheduleButtonHandler(isStudyGroup) {
-    var input = getInputData(isStudyGroup);
+function scheduleButtonHandler() {
+    var input = getInputData();
     $('#schedule-button').prop('disabled', true);
     disableInputs();
     chrome.runtime.sendMessage({method: 'schedule', details: input});
@@ -379,7 +376,7 @@ function checkFields() {
     }
 }
 
-function getInputData(isStudyGroup) {
+function getInputData() {
     // Returns contents of forms as an object
     var date = $('#inputDate').val();
     var time = $('#inputTime').val();
@@ -390,7 +387,8 @@ function getInputData(isStudyGroup) {
     var note = $('#inputNote').val();
     var professorName = $('#inputProfessor').val();
     var initials = $('#inputInitials').val();
-
+    var isStudyGroup = $('#group-button').hasClass('btn-primary');
+    
     if(note === '')
         note = null;
     return {'date': date,
