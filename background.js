@@ -1,5 +1,3 @@
-
-
 //test requestUrl: 'https://api.myjson.com/bins/28euu';
 
 /*
@@ -17,17 +15,16 @@
 */
 
 main = function() {
-    var scheduledAppointments, isScheduled, tutorList;
-    var settings, END_OF_THE_SEMETER;
-    
+    var settings, END_OF_THE_SEMESTER;
     updateSettings();
+    var scheduledAppointments, isScheduled;
     addEventListeners();    
 }
 
 function addEventListeners() {
     var calendarUrlRegex = /(https:\/\/www\.google\.com\/calendar.*)|(https:\/\/calendar\.google\.com\/calendar\/*)/;
     var timeEntries = getTimeEntries();
-    var dateText, datePickerDate;
+    var dateText, datePickerDate, tutorList;
     
     chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 	if(calendarUrlRegex.exec(tab.url))
@@ -120,7 +117,7 @@ function updateSettings() {
 
 function setSettings(newSettings, newEndSemesterDate){
     settings = newSettings;
-    END_OF_THE_SEMETER = rewriteRecurrenceDate(newEndSemesterDate);
+    END_OF_THE_SEMESTER = rewriteRecurrenceDate(newEndSemesterDate);
 }
 
 function rewriteRecurrenceDate(date){
@@ -164,7 +161,7 @@ function scheduleAppointment(details, timeEntries) {
     if(details.isStudyGroup === true) {
         courseCode = settings.courses[details.course].code; // TEST
         appointmentText = 'Study group (' + courseCode + '; ' + details.professorName + ') w/' + details.tutorName;
-        recurrenceText = "RRULE:FREQ=WEEKLY;UNTIL=" + END_OF_THE_SEMETER;
+        recurrenceText = "RRULE:FREQ=WEEKLY;UNTIL=" + END_OF_THE_SEMESTER;
         descriptionText = rewritePhoneNumber(details.phoneNumber) + ' Students: ' + details.studentName;
     }
     else {
