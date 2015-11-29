@@ -326,7 +326,7 @@ function isValidName(name) {
 
 function isSigned() {
     var initials = $('#inputInitials').val();
-    var initialsRegex = /^[a-z]+$/i;
+    var initialsRegex = /^[a-z]{2,}$/i;
     mo = initialsRegex.exec(initials);
     if(mo) {
         highlightField('success', '#inputInitials');

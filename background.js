@@ -17,7 +17,7 @@
 main = function() {
     var settings, END_OF_THE_SEMESTER;
     updateSettings();
-    var scheduledAppointments, isScheduled;
+    var scheduledAppointments, isScheduled = false;
     addEventListeners();    
 }
 
@@ -73,7 +73,7 @@ function addEventListeners() {
             getScheduledAppointments(startDate, endDate);
 	}
 	else if(message.method == 'schedule') {
-            scheduleAppointment(message.details, timeEntries);
+            scheduleAppointment(message.details, timeEntries, tutorList);
             return true;
 	}
 	else if(message.method == 'getTutorList') {
@@ -83,6 +83,7 @@ function addEventListeners() {
 	}
 	else if(message.method == 'getStatus') {
             sendResponse(isScheduled);
+	    isScheduled = false;
 	}
 	else if(message.method == 'getProfessorsList') {
             sendResponse(getProfessorsList(message.course));
@@ -147,9 +148,9 @@ function setScheduledAppointmentsList(array){
     scheduledAppointments = array;
 }
 
-function scheduleAppointment(details, timeEntries) {
+function scheduleAppointment(details, timeEntries, tutorList) {
     if(details.tutorName == 'I\'m feeling lucky!')
-        details.tutorName = selectRandomTutor();
+        details.tutorName = selectRandomTutor(tutorList);
     var appointmentText;
     var YearMonthDay = getYearMonthDay(details.date);
     var startHour = timeEntries[details.time];
@@ -244,7 +245,7 @@ function getTimeStamp() {
     return date.join("/") + " " + time.join(":") + " " + suffix;
 }
 
-function selectRandomTutor() {
+function selectRandomTutor(tutorList) {
     tutorList.splice(tutorList.indexOf('I\'m feeling lucky!'), 1);
     var min_num_courses = settings.tutors[tutorList[0]].length;
     var tutors_to_select = [];
