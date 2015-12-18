@@ -152,27 +152,18 @@ function setScheduledAppointmentsList(array){
 function scheduleAppointment(details, timeEntries, tutorList) {
     if(details.tutorName == 'I\'m feeling lucky!')
         details.tutorName = selectRandomTutor(tutorList);
-    var appointmentText;
     var YearMonthDay = getYearMonthDay(details.date);
     var startHour = timeEntries[details.time];
     var endHour = (parseInt(startHour) + 1).toString();
     var startTime = getDateTimeString(new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]), startHour);
     var endTime = getDateTimeString(new Date(YearMonthDay[0], YearMonthDay[1]-1, YearMonthDay[2]), endHour);
-    var initials = details.initials.toUpperCase();
-
-    if(details.isStudyGroup === true) {
-        courseCode = settings.courses[details.course].code; // TEST
-        appointmentText = 'Study group (' + courseCode + '; ' + details.professorName + ') w/' + details.tutorName;
+    var appointmentText = getAppointmentText(details);
+    var descriptionText = getDescriptionText(details);
+    var recurrenceText;
+    if(details.isStudyGroup === true)
         recurrenceText = "RRULE:FREQ=WEEKLY;UNTIL=" + END_OF_THE_SEMESTER;
-        descriptionText = rewritePhoneNumber(details.phoneNumber) + ' Students: ' + details.studentName;
-    }
-    else {
-        appointmentText = getAppointmentText(details);
+    else
         recurrenceText = null;
-        descriptionText = rewritePhoneNumber(details.phoneNumber);
-    }
-
-    descriptionText += '\nScheduled on ' + getTimeStamp() + ' by ' + details.initials.toUpperCase();
 
     var eventData = {
         "summary": appointmentText,
@@ -361,12 +352,12 @@ function getAppointmentSummaries(startTime){
 }
 
 function getTutorsFromSummaries(summaries){
-    var scheduledAppointmentRegex = /(.*?)\s*?\((.*?)\s*?\W?\s*?(.*?)\).*?[w](?:[\/\\\s]|(?:ith))+(\w*.*?)\s*?(\sNOTE:(.*))?/i;
+    var scheduledAppointmentRegex = /(\w+)\s.*\(.+\)\s.*/i;
     var tutors = [];
     for(i = 0; i < summaries.length; i++){
         var mo = scheduledAppointmentRegex.exec(summaries[i]);
         if(mo)
-            tutors.push(mo[4].toLowerCase());
+            tutors.push(mo[1].toLowerCase());
     }
     return tutors;
 }
@@ -411,12 +402,29 @@ function getYearMonthDay(popupDate){
 function getAppointmentText(details) {
     // Takes appointment details and returns appointment text
     var courseNumber = settings.courses[details.course].code;
-    var appointmentText = rewriteName(details.studentName) + " (" + courseNumber +
-        "; " + details.professorName + ") " + "w/" + details.tutorName +
-        ' - ' + details.initials.toUpperCase();
-    if(details.note)
-        appointmentText += (" NOTE: " + details.note);
+    var studentFirstName = rewriteName(details.studentName).split(" ")[0];
+    if(details.isStudyGroup)
+	studentFirstName = "Group";
+    var appointmentText = details.tutorName + " (" + studentFirstName + ") " + courseNumber;
     return appointmentText;
+}
+
+function getDescriptionText(details) {
+    var descriptionText = "";
+
+    if(details.isStudyGroup)
+	descriptionText += "Students: " + rewriteName(details.studentName);
+    else
+	descriptionText += "Student: " + rewriteName(details.studentName);
+    
+    descriptionText += "\nContact: " + rewritePhoneNumber(details.phoneNumber);
+    descriptionText += "\nInstructor: " + details.professorName;
+    descriptionText += "\nCourse: " + details.course;
+    if(details.note)
+	descriptionText += "\nNote: " + details.note;
+    descriptionText += "\nCreated on: " + getTimeStamp() + " by " + details.initials.toUpperCase();
+    
+    return descriptionText;
 }
 
 function rewriteName(name) {
