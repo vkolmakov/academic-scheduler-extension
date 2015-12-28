@@ -1,5 +1,3 @@
-//test requestUrl: 'https://api.myjson.com/bins/28euu';
-
 /*
   details object={'date': date,
   'time': time,
@@ -15,7 +13,6 @@
 */
 
 main = function() {
-    // Small change to test bitbucket
     var settings, END_OF_THE_SEMESTER;
     updateSettings();
     var scheduledAppointments, isScheduled = false;
