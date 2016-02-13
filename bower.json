@@ -1,0 +1,33 @@
+{
+  "name": "test",
+  "description": "(blank)",
+  "main": "views/popup.html",
+  "install": {
+    "path": {
+      "css": "css/lib",
+      "js": "js/lib"
+    }
+  },
+  "moduleType": [],
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.2.0",
+    "bootstrap": "~3.3.6",
+    "angular": "~1.4.9",
+    "angular-auto-validate": "~1.19.3",
+    "moment": "~2.11.1",
+    "angular-toArrayFilter": "~1.0.1",
+    "angular-resource": "~1.4.9",
+    "underscore": "~1.8.3",
+    "font-awesome": "fontawesome#~4.5.0",
+    "angular-ladda": "~0.3.1"
+  }
+}

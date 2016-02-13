@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="academic-scheduler-options">
+    <head>
+        <meta charset="UTF-8">
+        <title>Academic Scheduler Options Page</title>
+        <link rel="stylesheet" href="../css/lib/bootstrap.min.css">
+        <style>
+         body {
+             line-height: 2.25;
+         }
+         .btn {
+             margin-bottom: 15px;
+             margin-top: 10px;
+         }
+         .status-area {
+             margin-right: 20px;
+             color: #337AB7;
+         }
+         .form-horizontal {
+             margin: 15px;
+         }
+        </style>
+    </head>
+    <body>
+        <div class="container-main container"
+             ng-controller="OptionsController">
+            <div class="form-horizontal">
+                <div class="form-group"
+                ng-hide="isAddingNewLocation">
+
+                <button type="button"
+                        class="btn btn-primary btn-block"
+                        ng-click="startAddingNewLocation()"
+                        ng-hide="isLocationSelected"
+                        id="location-add">New Location</button>
+                    <label for="location"
+                           class="col-xs-4"
+                           id="location">Location</label>
+                    <div class="col-xs-8">
+                        <select class="form-control"
+                                ng-model="selectedLocationName"
+                                ng-options="l.location as l.location for l in locations">
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-group"
+                         ng-show="isAddingNewLocation">
+                        <label for="inputUrl"
+                               class="col-xs-4">Name</label>
+                        <div class="col-xs-8">
+                            <input type="text"
+                                   class="form-control"
+                                   id="inputUrl"
+                                   ng-model="newLocation"
+                                   placeholder="Enter New Location Name">
+                        </div>
+
+                        <button type="button"
+                                class="btn btn-primary"
+                                id="new-location-discrard"
+                                ng-click="startAddingNewLocation()">Discard</button>
+                        
+                        <button type="button"
+                                class="btn btn-primary pull-right"
+                                ng-click="addNewLocation()"
+                                id="new-location-save">Save New Location</button>
+                </div>
+
+                    
+                    <button type="button"
+                            class="btn btn-danger btn-block"
+                            ng-click="removeLocation()"
+                            ng-hide="isAddingNewLocation || !isLocationSelected"
+                            id="location-remove">Remove Selected Location</button>
+                </div>
+                
+                <hr/>
+                <div class="location-settings-wrapper"
+                     ng-show="isLocationSelected && !isAddingNewLocation">
+
+                    <div class="form-group">
+                        <label for="calendar"
+                               class="col-xs-4">Select Calendar</label>
+                        <div class="col-xs-8">
+                        <select class="form-control"
+                                ng-model="selectedLocation.calendarID"
+                                ng-options="c.id as c.summary for c in calendars">
+                        </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="inputUrl"
+                               class="col-xs-4">Settings URL</label>
+                        <div class="col-xs-8">
+                            <input type="text"
+                                   class="form-control"
+                                   id="inputUrl"
+                                   ng-model="selectedLocation.url"
+                                   placeholder="URL">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputEndSemesterDate"
+                               class="col-xs-4">Semester ends</label>
+                        <div class="col-xs-8">
+                            <input type="date"
+                                   class="form-control"
+                                   ng-model="selectedLocation.semesterEndDate"
+                                   id="inputEndSemesterDate">
+                        </div>
+                    </div>
+
+                    <div class="col-xs-4 text-right">
+                        <button type="button"
+                                class="btn btn-primary btn-block"
+                                ng-click="cancelSelection()"
+                                id="back-button">Back</button>
+
+                    </div>
+                    
+                    <div class="col-xs-4 col-xs-offset-4 text-right">
+                        <button type="button"
+                                class="btn btn-primary btn-block"
+                                ng-click="saveChanges()"
+                                id="save-button">Save</button>
+
+                    </div>
+                </div>
+            </div>
+            <pre>{{ selectedLocation | json }}</pre>
+        </div>
+
+        
+        <script src="../bower_components/angular/angular.min.js"></script>
+        <script src="../bower_components/angular-resource/angular-resource.min.js"></script>
+        <script src="../bower_components/moment/min/moment.min.js"></script>
+        <script src="../js/options.js"></script>
+    </body>
+</html>
