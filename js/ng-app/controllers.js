@@ -5,6 +5,12 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
     $scope.locations = {};
     $scope.tutors = [];
 
+    $scope.messages = {
+        updatingSettings: 'Trying to update settings...',
+        noLocations: 'No locations are specified. You can set them up in the options menu.',
+        invalidLocations: 'Make sure every location has semester end date and calendar specified',
+    };
+
     $scope.onSubmit = function() {
         $scope.formStatus.scheduling = true;
         calendarService.schedule($scope.formData, $scope.tutors, function(isScheduled) {
@@ -22,7 +28,7 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
 
     $scope.onLocationUpdate = function () {
         $scope.formStatus.setupError = true;
-        $scope.formStatus.errorMessage = 'Trying to update settings...';
+        $scope.formStatus.errorMessage = $scope.messages.updatingSettings;
 
         settingsService.refreshSettings($scope.formData.date, function () {
             $scope.onLocationSelect();
@@ -50,6 +56,7 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
     $scope.onError = function (errorMessage) {
         $scope.formStatus.errorMessage = errorMessage;
         $scope.formStatus.setupError = true;
+        $scope.$apply();
     };
 
     $scope.setTutors = function () {
@@ -89,21 +96,38 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
         $scope.resetForm();
         locationService.getLocations(function (locations) {
             // grabbing locations from chrome sync storage
+            var isValidLocationObject = locationService.isValidLocation(locations);
+
+            if (_.isEmpty(locations)) {
+                $scope.onError($scope.messages.noLocations);
+                return;
+            }
+
+            else if (!isValidLocationObject) {
+                $scope.onError($scope.messages.invalidLocations);
+                return;
+            }
+
             $scope.locations = locations;
             if (onStartup) {
                 // If ran for the first time select 1st (default) location
                 $scope.formData.selectedLocation = $scope.locations[Object.keys($scope.locations)[0]];
             }
+
             settingsService.getSettings($scope.formData.selectedLocation, function (settings) {
+                // TODO: check settings validity
                 if (settings.error) {
                     $scope.onError(settings.error);
                     return;
                 }
-                // grabbing settings from from async api call and immediately set courses
+                // grabbing settings from from async api call and immediately setting courses
                 $scope.settings = settings;
                 $scope.courses = settings.courses;
-                console.log("got the settings!");
-                console.log($scope.settings);
+
+                if ($scope.DEBUG) {
+                    console.log("got the settings!");
+                    console.log($scope.settings);
+                }
 
                 $scope.formStatus.setupError = false;
                 $scope.formStatus.errorMessage = '';
@@ -111,7 +135,8 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
                 initialSetupService.getWebpageDate (function (initialDate) {
                     // grabbing data from currently open google calendar page which is stored in chrome local cache
                     // Since date is stored as a string 'YYYY/MM/DD', convert it to a date object
-                    var ymd = initialDate.split('/');
+                    var ymd = initialDate ? initialDate.split('/') : moment().format('YYYY/MM/DD').split('/');
+
                     $scope.formData.date = new Date(parseInt(ymd[0]), parseInt(ymd[1])-1, parseInt(ymd[2]));
                     // update time entries based on this date
                     $scope.onDateSelect();
@@ -122,4 +147,4 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
     };
 
     $scope.initialSetup(true); // startup
-}])
+}]);

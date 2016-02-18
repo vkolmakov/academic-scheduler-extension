@@ -1,4 +1,9 @@
 ;(function () {
+    // Clear out the storage
+    chrome.storage.local.clear(function () {
+        console.log("Storage is clear");
+    });
+
     var calendarUrlRegex = /(https:\/\/www\.google\.com\/calendar.*)|(https:\/\/calendar\.google\.com\/calendar\/*)/;
 
     chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {

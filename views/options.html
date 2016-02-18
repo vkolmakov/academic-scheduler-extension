@@ -61,21 +61,21 @@
                                 class="btn btn-primary"
                                 id="new-location-discrard"
                                 ng-click="startAddingNewLocation()">Discard</button>
-                        
+
                         <button type="button"
                                 class="btn btn-primary pull-right"
                                 ng-click="addNewLocation()"
                                 id="new-location-save">Save New Location</button>
                 </div>
 
-                    
+
                     <button type="button"
                             class="btn btn-danger btn-block"
                             ng-click="removeLocation()"
                             ng-hide="isAddingNewLocation || !isLocationSelected"
                             id="location-remove">Remove Selected Location</button>
                 </div>
-                
+
                 <hr/>
                 <div class="location-settings-wrapper"
                      ng-show="isLocationSelected && !isAddingNewLocation">
@@ -90,7 +90,7 @@
                         </select>
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="inputUrl"
                                class="col-xs-4">Settings URL</label>
@@ -120,7 +120,7 @@
                                 id="back-button">Back</button>
 
                     </div>
-                    
+
                     <div class="col-xs-4 col-xs-offset-4 text-right">
                         <button type="button"
                                 class="btn btn-primary btn-block"
@@ -130,10 +130,14 @@
                     </div>
                 </div>
             </div>
-            <pre>{{ selectedLocation | json }}</pre>
+            <div class="debug"
+                 ng-show="DEBUG">
+                <pre>{{ selectedLocation | json }}</pre>
+            </div>
+
         </div>
 
-        
+
         <script src="../bower_components/angular/angular.min.js"></script>
         <script src="../bower_components/angular-resource/angular-resource.min.js"></script>
         <script src="../bower_components/moment/min/moment.min.js"></script>

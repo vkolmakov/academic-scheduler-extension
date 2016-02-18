@@ -7,6 +7,15 @@ app
                 setLocations(items);
             });
         };
+
+        this.isValidLocation = function (locations) {
+            var reqs = ['location', 'semesterEndDate', 'url', 'calendarID'];
+            return _.all(locations, function (location) {
+                return _.all(reqs, function (req) {
+                    return _.contains(_.keys(location), req);
+                });
+            });
+        };
     }])
 
     .service('settingsService', ['$http', 'locationService', function ($http, locationService) {
@@ -31,7 +40,7 @@ app
                             function(error) {
                                 console.log(error);
                                 setSettings({
-                                    error: "Settings file is currently unavailable, please try another url."
+                                    error: "Settings file is currently unavailable, please try again later."
                                 });
                             });
                 }
@@ -47,7 +56,9 @@ app
         this.refreshSettings = function (date, respond) {
             var dateStr = moment(date).format('YYYY/MM/DD');
             chrome.storage.local.clear(function () {
-                chrome.storage.local.set({'webpageDate': dateStr });
+                chrome.storage.local.set({
+                    'webpageDate': dateStr
+                });
                 respond();
             });
         };

@@ -1,6 +1,4 @@
-var optionsModule = angular.module('academic-scheduler-options', [
-    'ngResource'
-])
+var optionsModule = angular.module('academic-scheduler-options', [])
 
     .service('optionsService', ['$http', function ($http) {
         var self = this;
@@ -16,7 +14,7 @@ var optionsModule = angular.module('academic-scheduler-options', [
                 if (!value[locationName]) {
                     value[locationName] = {
                         'location': locationName,
-                        'url': 'please set url',
+                        'url': 'https://mathcenter.herokuapp.com/api/getExtensionSettings', // default value is hardcoded
                     };
                     chrome.storage.sync.set(value); // save changes
                     updateLocations();
@@ -56,20 +54,20 @@ var optionsModule = angular.module('academic-scheduler-options', [
                         'Authorization': 'Bearer ' + token
                     }
                 })
-                    .then(
-                        function (response) {
-                            setCalendars(response.data.items);
-                        },
-                        function (error) {
-                            console.log(error);
-                        }
-                    );
+                    .then(function (response) {
+                        setCalendars(response.data.items);
+                    },
+                          function (error) {
+                              console.log(error);
+                          });
             });
         };
-        
+
     }])
 
     .controller('OptionsController', ['$scope', 'optionsService', function ($scope, optionsService) {
+        $scope.DEBUG = false;
+
         $scope.selectedLocationName = '';
         $scope.selectedLocation = {};
         $scope.locations = {};
@@ -88,7 +86,7 @@ var optionsModule = angular.module('academic-scheduler-options', [
 
         $scope.isLocationSelected = true;
         $scope.isAddingNewLocation = false;
-        
+
         $scope.getLocations = function () {
             optionsService.getLocations (function (locations) {
                 $scope.locations = locations;
@@ -101,7 +99,7 @@ var optionsModule = angular.module('academic-scheduler-options', [
             $scope.calendars = calendars;
         });
 
-        
+
         $scope.startAddingNewLocation = function () {
             $scope.isAddingNewLocation = !($scope.isAddingNewLocation);
         };
@@ -110,7 +108,7 @@ var optionsModule = angular.module('academic-scheduler-options', [
             $scope.selectedLocationName = '';
             $scope.isLocationSelected = false;
         };
-        
+
         $scope.addNewLocation = function () {
             optionsService.addNewLocation ($scope.newLocation, $scope.getLocations);
             $scope.isAddingNewLocation = !($scope.isAddingNewLocation);
