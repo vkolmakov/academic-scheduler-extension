@@ -1,5 +1,5 @@
 app.controller('MainController', ['$scope', 'locationService','calendarService', 'tutorService', 'settingsService', 'initialSetupService', function ($scope, locationService, calendarService, tutorService, settingsService, initialSetupService) {
-    $scope.DEBUG = false;
+    $scope.DEBUG = true;
     $scope.formData = {};
     $scope.formStatus = {};
     $scope.locations = {};
@@ -8,7 +8,7 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
     $scope.messages = {
         updatingSettings: 'Trying to update settings...',
         noLocations: 'No locations are specified. You can set them up in the options menu.',
-        invalidLocations: 'Make sure every location has semester end date and calendar specified',
+        invalidLocations: 'Make sure every location has semester end date and calendar specified'
     };
 
     $scope.onSubmit = function() {

@@ -4,7 +4,7 @@ app
         // and provide it for settings service
         this.getLocations = function (setLocations) {
             chrome.storage.sync.get(null, function (items) {
-                setLocations(items);
+                setLocations(items.locations);
             });
         };
 
@@ -36,13 +36,12 @@ app
                         // caching settings
                         chrome.storage.local.set(value);
                         setSettings(response.data);
-                    },
-                            function(error) {
-                                console.log(error);
-                                setSettings({
-                                    error: "Settings file is currently unavailable, please try again later."
-                                });
-                            });
+                    }, function(error) {
+                        var errorMessage = {
+                            error: "Settings file is currently unavailable, please try again later."
+                        };
+                        setSettings(errorMessage);
+                    });
                 }
                 else {
                     // here, settings were found in local storage
@@ -272,10 +271,9 @@ app
                 }).then(function (response) {
                     var events = response.data.items;
                     setEvents(events);
-                },
-                        function (error) {
-                            console.log(error);
-                        });
+                }, function (error) {
+                    console.log(error);
+                });
             });
         };
     }]);

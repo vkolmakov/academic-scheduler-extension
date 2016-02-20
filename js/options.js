@@ -4,19 +4,19 @@ var optionsModule = angular.module('academic-scheduler-options', [])
         var self = this;
         this.getLocations = function (setLocations) {
             chrome.storage.sync.get(null, function (items) {
-                var allLocations = items;
+                var allLocations = items.locations || {};
                 setLocations(allLocations);
             });
         };
 
         this.addNewLocation = function (locationName, updateLocations) {
-            chrome.storage.sync.get(locationName, function (value) {
-                if (!value[locationName]) {
-                    value[locationName] = {
+            chrome.storage.sync.get(null, function (items) {
+                if (!items.locations[locationName]) {
+                    items.locations[locationName] = {
                         'location': locationName,
-                        'url': 'https://mathcenter.herokuapp.com/api/getExtensionSettings', // default value is hardcoded
+                        'url': 'https://mathcenter.herokuapp.com/api/getExtensionSettings' // default link is hardcoded
                     };
-                    chrome.storage.sync.set(value); // save changes
+                    chrome.storage.sync.set(items); // save changes
                     updateLocations();
                 }
                 else {
@@ -26,43 +26,41 @@ var optionsModule = angular.module('academic-scheduler-options', [])
         };
 
         this.removeLocation = function (locationName, updateLocations) {
-            chrome.storage.sync.remove(locationName, function () {
-                updateLocations();
+            chrome.storage.sync.get(null, function (items) {
+                items.locations = _.omit(items.locations, locationName);
+                chrome.storage.sync.set(items);
             });
         };
 
         this.saveChanges = function (locationObj) {
             // converting semesterenddate to string so it will store in local storage
-            chrome.storage.sync.get(locationObj.location, function (value) {
+            chrome.storage.sync.get(null, function (items) {
                 for (prop in locationObj) {
                     // saving every property as a string
-                    value[locationObj.location][prop] = '' + locationObj[prop];
+                    items.locations[locationObj.location][prop] = '' + locationObj[prop];
                 }
-                chrome.storage.sync.set(value);
+                chrome.storage.sync.set(items);
             });
         };
 
         this.getCalendars = function (setCalendars) {
-            self.calendarsAPIUrl = 'https://www.googleapis.com/calendar/v3/users/me/calendarList'
+            self.calendarsAPIUrl = 'https://www.googleapis.com/calendar/v3/users/me/calendarList';
             chrome.identity.getAuthToken ({
                 'interactive': true
             }, function(token) {
                 $http({
                     method: 'GET',
-                    url: self.calendarsAPIUrl,
                     headers: {
                         'Authorization': 'Bearer ' + token
-                    }
-                })
-                    .then(function (response) {
-                        setCalendars(response.data.items);
                     },
-                          function (error) {
-                              console.log(error);
-                          });
+                    url: self.calendarsAPIUrl
+                }).then(function (response) {
+                    setCalendars(response.data.items);
+                }, function (error) {
+                    console.log(error);
+                });
             });
         };
-
     }])
 
     .controller('OptionsController', ['$scope', 'optionsService', function ($scope, optionsService) {
@@ -80,7 +78,7 @@ var optionsModule = angular.module('academic-scheduler-options', [])
             }
             else
                 $scope.isLocationSelected = false;
-        })
+        });
 
         $scope.newLocation = '';
 
@@ -99,7 +97,6 @@ var optionsModule = angular.module('academic-scheduler-options', [])
             $scope.calendars = calendars;
         });
 
-
         $scope.startAddingNewLocation = function () {
             $scope.isAddingNewLocation = !($scope.isAddingNewLocation);
         };
@@ -116,10 +113,10 @@ var optionsModule = angular.module('academic-scheduler-options', [])
 
         $scope.removeLocation = function () {
             optionsService.removeLocation ($scope.selectedLocationName, $scope.getLocations);
-        }
+        };
 
         $scope.saveChanges = function () {
             optionsService.saveChanges ($scope.selectedLocation);
             // TODO: Display message
-        }
+        };
     }]);
