@@ -11,6 +11,10 @@ var optionsModule = angular.module('academic-scheduler-options', [])
 
         this.addNewLocation = function (locationName, updateLocations) {
             chrome.storage.sync.get(null, function (items) {
+                if (_.isEmpty(items)) {
+                    items.locations = {};
+                }
+
                 if (!items.locations[locationName]) {
                     items.locations[locationName] = {
                         'location': locationName,

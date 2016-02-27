@@ -1,6 +1,6 @@
 {
-  "name": "test",
-  "description": "(blank)",
+  "name": "Academic Scheduler",
+  "description": "",
   "main": "views/popup.html",
   "install": {
     "path": {

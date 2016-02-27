@@ -1,5 +1,5 @@
 app.controller('MainController', ['$scope', 'locationService','calendarService', 'tutorService', 'settingsService', 'initialSetupService', function ($scope, locationService, calendarService, tutorService, settingsService, initialSetupService) {
-    $scope.DEBUG = true;
+    $scope.DEBUG = false;
     $scope.formData = {};
     $scope.formStatus = {};
     $scope.locations = {};
