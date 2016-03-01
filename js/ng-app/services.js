@@ -189,13 +189,17 @@ app
         this.schedule = function (data, tutors, setFeedback) {
             // TODO: Remove when appointment length added on the location object
             data.selectedLocation.appointmentLength = 60;
-            //
 
-            // If random tutor option is selected, grab one random tutor
-            data.tutor = data.tutor === self.randomTutorOption ? _.sample(_.without(tutors[data.time.toString()], self.randomTutorOption)) : data.tutor;
+            if (data.tutor === self.randomTutorOption) {
+                data.tutor = _.sample(_.without(tutors[data.time.toString()], self.randomTutorOption));
+                data.isSpecificTutorRequested = false;
+            } else if (tutors[data.time.toString()].length != 1) {
+                data.isSpecificTutorRequested = true;
+            } // otherwise use checkbox value to determine if specific tutor was required
+
             var requestUrl = self.calendarAPIBaseUrl + data.selectedLocation.calendarID + '/events';
             // summary text has format as follows: tutorName (studentFirstName) courseCode
-            var summary = [data.tutor,
+            var summary = [data.tutor, data.isSpecificTutorRequested ? ' ##' : '',
                            ' (', data.isStudyGroup ? 'Group' : data.student.split(' ')[0].capitalize(), ') ',
                            data.course.code].join('');
             // description includes student full name, contact and timestamp
@@ -237,18 +241,16 @@ app
                 $http({
                     method: 'POST',
                     url: requestUrl,
-                    data: event,
-
                     headers: {
                         'Authorization': 'Bearer ' + token
-                    }
-                }).then(
-                    function (response) {
-                        setFeedback(true);
                     },
-                    function (error) {
-                        setFeedback(false);
-                    });
+                    data: event
+                }).then(function (response) {
+                    setFeedback(true);
+                },
+                        function (error) {
+                            setFeedback(false);
+                        });
             });
         };
 

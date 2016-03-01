@@ -22,8 +22,7 @@ var optionsModule = angular.module('academic-scheduler-options', [])
                     };
                     chrome.storage.sync.set(items); // save changes
                     updateLocations();
-                }
-                else {
+                } else {
                     console.log('Already exists!');
                 }
             });

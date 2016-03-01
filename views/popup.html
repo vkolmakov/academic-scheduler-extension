@@ -142,6 +142,12 @@
                                                 ng-options="tutor for tutor in tutors[formData.time]"
                                                 required="required">
                                         </select>
+                                        <div class="checkbox-custom checkbox" ng-show="tutors[formData.time].length == 1">
+                                            <label>
+                                                <input type="checkbox"
+                                                       ng-model="formData.isSpecificTutorRequested">Request this tutor ##
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -226,6 +232,7 @@
                 </div>
                     </form>
             </div>
+
             <div class="container debug"
                  style="padding-top:15px;"
                  ng-show="DEBUG">

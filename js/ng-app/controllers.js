@@ -3,18 +3,20 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
     $scope.formData = {};
     $scope.formStatus = {};
     $scope.locations = {};
-    $scope.tutors = [];
+    $scope.tutors = {};
 
     $scope.messages = {
         updatingSettings: 'Trying to update settings...',
         noLocations: 'No locations are specified. You can set them up in the options menu.',
-        invalidLocations: 'Make sure every location has semester end date and calendar specified'
+        invalidLocations: 'Make sure every location has semester end date and calendar specified',
+        cantSetTutorEx: "Not enough data: can't set a tutor yet"
     };
 
     $scope.onSubmit = function() {
         $scope.formStatus.scheduling = true;
+
         calendarService.schedule($scope.formData, $scope.tutors, function(isScheduled) {
-            $scope.tutors = [];
+            $scope.tutors = {};
             $scope.formStatus.scheduling = false;
             $scope.formStatus.scheduled = isScheduled;
             $scope.formStatus.errorOcurred = !isScheduled;
@@ -60,24 +62,30 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
     };
 
     $scope.setTutors = function () {
-        // fix this if statement, use _ instead
-        if ($scope.tutors[$scope.formData.time])
+        // Selects first tutor in the list if possible, called on time change
+        try {
             $scope.formData.tutor = $scope.tutors[$scope.formData.time][0];
-        // TODO: fix it later, find a better way to select first tutor
+        } catch (e) {
+            console.log($scope.messages.cantSetTutorEx);
+        }
     };
 
     $scope.getTutors = function () {
         // event listener for time-select and course-select
         tutorService.getAvailableTutors($scope.settings, $scope.formData, function (tutors) {
             $scope.tutors = tutors;
+            $scope.setTutors();
         });
     };
 
     $scope.resetForm = function () {
         $scope.formData = {
             selectedLocation: $scope.formData.selectedLocation,
-            date: $scope.formData.date
+            date: $scope.formData.date,
+            isSpecificTutorRequested: false
         };
+
+        $scope.tutors = {};
 
         $scope.formStatus = {
             scheduled: false,
@@ -87,7 +95,6 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
             setupError: $scope.formStatus.setupError || false,
             errorMessage: $scope.formStatus.errorMessage || ''
         };
-        console.log();
     };
 
     // BAD-BAD-BAD-BADDDDD, needs refactioring
@@ -101,9 +108,7 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
             if (_.isEmpty(locations)) {
                 $scope.onError($scope.messages.noLocations);
                 return;
-            }
-
-            else if (!isValidLocationObject) {
+            } else if (!isValidLocationObject) {
                 $scope.onError($scope.messages.invalidLocations);
                 return;
             }
@@ -123,11 +128,6 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
                 // grabbing settings from from async api call and immediately setting courses
                 $scope.settings = settings;
                 $scope.courses = settings.courses;
-
-                if ($scope.DEBUG) {
-                    console.log("got the settings!");
-                    console.log($scope.settings);
-                }
 
                 $scope.formStatus.setupError = false;
                 $scope.formStatus.errorMessage = '';
