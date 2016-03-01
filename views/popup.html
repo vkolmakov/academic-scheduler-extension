@@ -23,6 +23,7 @@
         <script src="../js/ng-app/controllers.js"></script>
         <script src="../js/ng-app/services.js"></script>
         <script src="../js/ng-app/filters.js"></script>
+        <script src="../js/ng-app/directives.js"></script>
     </head>
     <body>
         <div id="main" ng-controller="MainController">
@@ -58,18 +59,14 @@
                  ng-show="formStatus.setupError"> <strong>{{ formStatus.errorMessage }}</strong></div>
             <div class="container container-form"
                  ng-class="{'container-form-blocked':formStatus.setupError}">
-                <div class="col-xs-4 open-spots">
-                    <ul class="list-group">
-                        <li class="list-group-item hour-spots"
-                            ng-repeat="(hour, tutors) in tutors">
-                            {{ time[hour].display }}: {{ tutors.length != 0 ? (tutors.length > 1 ? tutors.slice(1).slice(0, 2).join(', ') + (tutors.length == 3 ? '.' : ', ...') : tutors.join() + '.') : 'No tutors' }}
-                            <span class="badge"
-                                  ng-class="{
-                                            'open-spot-badge': tutors.length > 0, 'closed-spot-badge': tutors.length < 1
-                                            }">{{ tutors.length > 1 ? tutors.length - 1 : tutors.length }}</span>
-                        </li>
-                    </ul>
+
+
+                <div class="col-xs-4 open-slots">
+                    <open-slots-table tutorslist="tutors"
+                                      timetable="time"></open-slots-table>
                 </div>
+
+
                 <div class="col-xs-8">
                     <form ng-submit="onSubmit()"
                           novalidate="novalidate"

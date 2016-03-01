@@ -30,16 +30,16 @@ select.form-control {
     margin-top: 4px !important;
 }
 
-.hour-spots {
+.hour-slots {
     padding: 0px 0px 0px 15px !important;
 }
 
-.open-spot-badge {
+.open-slot-badge {
     background-color: #4caf50;
     margin: 4px;
 }
 
-.closed-spot-badge {
+.closed-slot-badge {
     background-color: #E51C23;
     margin: 4px;
 }
@@ -54,7 +54,7 @@ select.form-control {
     margin: 25px;
 }
 
-.open-spots {
+.open-slots {
     padding: 0px !important;
 }
 
