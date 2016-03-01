@@ -66,7 +66,6 @@
                                       timetable="time"></open-slots-table>
                 </div>
 
-
                 <div class="col-xs-8">
                     <form ng-submit="onSubmit()"
                           novalidate="novalidate"
@@ -74,134 +73,98 @@
                           class="form-horizontal">
                         <div class="container">
                             <div class="column-wrapper col-xs-4">
-                                <div class="form-group">
-                                    <label for="date"
-                                           class="control-label col-xs-3">Date</label>
-                                    <div class="col-xs-9">
-                                        <input type="date"
-                                               class="form-control"
-                                               ng-model="formData.date"
-                                               ng-change="onDateSelect()"
-                                               id="date"
-                                               required="required"/>
-                                    </div>
-                                </div>
+                                <form-field-inline field-name="date">
+                                    <input type="date"
+                                           class="form-control"
+                                           ng-model="formData.date"
+                                           ng-change="onDateSelect()"
+                                           id="date"
+                                           required="required"/>
+                                </form-field-inline>
 
-                                <div class="form-group">
-                                    <label for="course"
-                                           class="control-label col-xs-3">Course</label>
-                                    <div class="col-xs-9">
-                                        <select class="form-control"
-                                                ng-model="formData.course"
-                                                ng-change="onCourseSelect()"
-                                                ng-options="c.name for c in courses | toArray | orderBy:'name' "
-                                                required="required">
-                                            <option value="">Select a course</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                <form-field-inline field-name="course">
+                                    <select class="form-control"
+                                            ng-model="formData.course"
+                                            ng-change="onCourseSelect()"
+                                            ng-options="c.name for c in courses | toArray | orderBy:'name' "
+                                            required="required">
+                                        <option value="">Select a course</option>
+                                    </select>
+                                </form-field-inline>
 
-                                <div class="form-group">
-                                    <label for="time"
-                                           class="control-label col-xs-3">Time</label>
-                                    <div class="col-xs-9">
-                                        <select class="form-control"
-                                                ng-model="formData.time"
-                                                ng-change="setTutors()"
-                                                ng-options="t.value as t.display for t in time"
-                                                required="required">
-                                            <option value="">Select time</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                <form-field-inline field-name="time">
+                                    <select class="form-control"
+                                            ng-model="formData.time"
+                                            ng-change="setTutors()"
+                                            ng-options="t.value as t.display for t in time"
+                                            required="required">
+                                        <option value="">Select time</option>
+                                    </select>
+                                </form-field-inline>
 
-                                <div class="form-group">
-                                    <label for="professor"
-                                           class="control-label col-xs-3">Professor</label>
-                                    <div class="col-xs-9">
-                                        <select class="form-control"
-                                                ng-model="formData.professor"
-                                                ng-options="p for p in professors | orderBy:'p'"
-                                                required="required">
-                                            <option value="">Select a professor</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                <form-field-inline field-name="professor">
+                                    <select class="form-control"
+                                            ng-model="formData.professor"
+                                            ng-options="p for p in professors | orderBy:'p'"
+                                            required="required">
+                                        <option value="">Select a professor</option>
+                                    </select>
+                                </form-field-inline>
                             </div>
 
                             <div class="column-wrapper col-xs-4">
-                                <div class="form-group">
-                                    <label for="tutor"
-                                           class="control-label col-xs-3">Tutor</label>
-                                    <div class="col-xs-9">
-                                        <select class="form-control"
-                                                ng-model="formData.tutor"
-                                                ng-options="tutor for tutor in tutors[formData.time]"
-                                                required="required">
-                                        </select>
-                                        <div class="checkbox-custom checkbox" ng-show="tutors[formData.time].length == 1">
-                                            <label>
-                                                <input type="checkbox"
-                                                       ng-model="formData.isSpecificTutorRequested">Request this tutor ##
-                                            </label>
-                                        </div>
+                                <form-field-inline field-name="tutor">
+                                    <select class="form-control"
+                                            ng-model="formData.tutor"
+                                            ng-options="tutor for tutor in tutors[formData.time]"
+                                            required="required">
+                                    </select>
+                                    <div class="checkbox-custom checkbox" ng-show="tutors[formData.time].length == 1">
+                                        <label>
+                                            <input type="checkbox"
+                                                   ng-model="formData.isSpecificTutorRequested">Request this tutor ##
+                                        </label>
                                     </div>
-                                </div>
+                                </form-field-inline>
 
-                                <div class="form-group">
-                                    <label for="student"
-                                           class="control-label col-xs-3">Student</label>
-                                    <div class="col-xs-9">
-                                        <input type="text"
-                                               class="form-control"
-                                               ng-model="formData.student"
-                                               ng-pattern="/\w+\s\w+.*/"
-                                               ng-pattern-err-type="badName"
-                                               placeholder="First Last"
-                                               required="required" />
-                                    </div>
-                                </div>
+                                <form-field-inline field-name="student">
+                                    <input type="text"
+                                           class="form-control"
+                                           ng-model="formData.student"
+                                           ng-pattern="/\w+\s\w+.*/"
+                                           ng-pattern-err-type="badName"
+                                           placeholder="First Last"
+                                           required="required" />
+                                </form-field-inline>
 
-                                <div class="form-group">
-                                    <label for="contact"
-                                           class="control-label col-xs-3">Contact</label>
-                                    <div class="col-xs-9">
-                                        <input type="text"
-                                               class="form-control"
-                                               placeholder="Email or Phone"
-                                               ng-model="formData.contact"
-                                               ng-pattern="/(^(\()?(\d{3})(\))?[-\.\s]?(\d{3})[-\.\s]?(\d{4})$)|(^\S+@\S+\.\S+$)/"
-                                               ng-pattern-err-type="badContact"
-                                               required="required" />
-                                    </div>
-                                </div>
+                                <form-field-inline field-name="contact">
+                                    <input type="text"
+                                           class="form-control"
+                                           placeholder="Email or Phone"
+                                           ng-model="formData.contact"
+                                           ng-pattern="/(^(\()?(\d{3})(\))?[-\.\s]?(\d{3})[-\.\s]?(\d{4})$)|(^\S+@\S+\.\S+$)/"
+                                           ng-pattern-err-type="badContact"
+                                           required="required" />
+                                </form-field-inline>
 
-                                <div class="form-group">
-                                    <label for="note"
-                                           class="control-label col-xs-3">Note</label>
-                                    <div class="col-xs-9">
-                                        <input type="text"
-                                               class="form-control"
-                                               placeholder="Optional"
-                                               ng-model="formData.note"
-                                               id="note" />
-                                    </div>
-                                </div>
+                                <form-field-inline field-name="note">
+                                    <input type="text"
+                                           class="form-control"
+                                           placeholder="Optional"
+                                           ng-model="formData.note"
+                                           id="note" />
+                                </form-field-inline>
 
-                                <div class="form-group">
-                                    <label for="initials"
-                                           class="control-label col-xs-3">Initials</label>
-                                    <div class="col-xs-9">
-                                        <input type="text"
-                                               class="form-control"
-                                               placeholder="Sign w/ Your Initials"
-                                               ng-model="formData.initials"
-                                               ng-pattern="/\w\w+/"
-                                               ng-pattern-err-type="notSigned"
-                                               ng-required-err-type="notSigned"
-                                               required="required" />
-                                    </div>
-                                </div>
+                                <form-field-inline field-name="signature">
+                                    <input type="text"
+                                           class="form-control"
+                                           placeholder="Sign w/ Your Initials"
+                                           ng-model="formData.initials"
+                                           ng-pattern="/\w\w+/"
+                                           ng-pattern-err-type="notSigned"
+                                           ng-required-err-type="notSigned"
+                                           required="required" />
+                                </form-field-inline>
 
                             </div>
                         </div>
