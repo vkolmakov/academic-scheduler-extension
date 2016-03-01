@@ -1,0 +1,10 @@
+<button class="btn btn-primary pull-right"
+        ladda="formStatus.scheduling"
+        type="submit"
+        ng-class="{'disabled':!form.$valid || formStatus.scheduled || formStatus.scheduling || formData.errorOccurred || formData.setupError,
+                  'btn-success disabled':formStatus.scheduled,
+                  'btn-error disabled':formStatus.errorOcurred}">
+    <span ng-show="!formStatus.scheduling && !formStatus.scheduled">Schedule</span>
+    <span ng-show="formStatus.scheduling">In Progress</span>
+    <span ng-show="formStatus.scheduled">Scheduled!</span>
+</button>

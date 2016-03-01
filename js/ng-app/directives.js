@@ -17,4 +17,16 @@ app.directive('openSlotsTable', function () {
                 fieldName: '@'
             }
         };
+    })
+    .directive('clearButton', function () {
+        return {
+            restrict: 'E',
+            templateUrl: '../../views/templates/clear-button.html'
+        };
+    })
+    .directive('scheduleButton', function () {
+        return {
+            restrict: 'E',
+            templateUrl: '../../views/templates/schedule-button.html'
+        };
     });

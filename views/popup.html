@@ -165,32 +165,18 @@
                                            ng-required-err-type="notSigned"
                                            required="required" />
                                 </form-field-inline>
-
                             </div>
                         </div>
 
-                    <div class="col-xs-4">
-                        <button class="btn btn-primary pull-left"
-                                type="button"
-                                ng-click="onClearForm()"
-                            <span>Clear</span>
-                        </button>
-                    </div>
+                        <div class="col-xs-4">
+                            <clear-button></clear-button>
+                        </div>
 
-                    <div class="col-xs-4 col-xs-offset-4">
-                        <button class="btn btn-primary pull-right"
-                                ladda="formStatus.scheduling"
-                                type="submit"
-                                ng-class="{'disabled':!form.$valid || formStatus.scheduled || formStatus.scheduling || formData.errorOccurred || formData.setupError,
-                                          'btn-success disabled':formStatus.scheduled,
-                                          'btn-error disabled':formStatus.errorOcurred}">
-                            <span ng-show="!formStatus.scheduling && !formStatus.scheduled">Schedule</span>
-                            <span ng-show="formStatus.scheduling">In Progress</span>
-                            <span ng-show="formStatus.scheduled">Scheduled!</span>
-                        </button>
-                    </div>
-                </div>
+                        <div class="col-xs-4 col-xs-offset-4">
+                            <schedule-button></schedule-button>
+                        </div>
                     </form>
+                </div>
             </div>
 
             <div class="container debug"
