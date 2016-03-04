@@ -7,59 +7,18 @@
         <link rel="stylesheet" href="../bower_components/font-awesome/css/font-awesome.min.css">
         <link rel="stylesheet" href="../bower_components/ladda/dist/ladda-themeless.min.css">
         <link rel="stylesheet" href="../css/style.css">
-
-        <script src="../bower_components/jquery/dist/jquery.min.js"></script>
-        <script src="../bower_components/moment/min/moment.min.js"></script>
-        <script src="../bower_components/underscore/underscore-min.js"></script>
-        <script src="../bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-        <script src="../bower_components/angular/angular.min.js"></script>
-        <script src="../bower_components/angular-resource/angular-resource.min.js"></script>
-        <script src="../bower_components/angular-auto-validate/dist/jcs-auto-validate.min.js"></script>
-        <script src="../bower_components/angular-toArrayFilter/toArrayFilter.js"></script>
-        <script src="../bower_components/ladda/dist/spin.min.js"></script>
-        <script src="../bower_components/ladda/dist/ladda.min.js"></script>
-        <script src="../bower_components/angular-ladda/dist/angular-ladda.min.js"></script>
-        <script src="../js/ng-app/app.js"></script>
-        <script src="../js/ng-app/controllers.js"></script>
-        <script src="../js/ng-app/services.js"></script>
-        <script src="../js/ng-app/filters.js"></script>
-        <script src="../js/ng-app/directives.js"></script>
     </head>
     <body>
         <div id="main" ng-controller="MainController">
-            <div class="nav header-wrapper">
-                <div class="col-xs-6 form-inline">
-                    <div class="form-group">
-                        <select class="form-control"
-                                id="location"
-                                ng-model="formData.selectedLocation"
-                                ng-options="loc.location for loc in locations track by loc.location"
-                                ng-change="onLocationSelect()"
-                                required="required">
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <a ng-click="onLocationUpdate()"
-                           style="color:white">
-                            <i class="fa fa-refresh fa-lg"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="col-xs-offset-2 col-xs-4 form-inline">
-                    <div class="checkbox-custom checkbox">
-                        <label>
-                            <input type="checkbox"
-                                   ng-model="formData.isStudyGroup"> Click here to make a study group
-                        </label>
-                    </div>
-                </div>
-            </div>
+            <navbar></navbar>
+
             <div id="error-message"
                  class="alert alert-danger"
-                 ng-show="formStatus.setupError"> <strong>{{ formStatus.errorMessage }}</strong></div>
+                 ng-show="formStatus.setupError"> <strong>{{ formStatus.errorMessage }}</strong>
+            </div>
+
             <div class="container container-form"
                  ng-class="{'container-form-blocked':formStatus.setupError}">
-
 
                 <div class="col-xs-4 open-slots">
                     <open-slots-table tutorslist="tutors"
@@ -194,5 +153,21 @@
                 <pre>{{ time }}</pre>
             </div>
         </div>
+        <script src="../bower_components/jquery/dist/jquery.min.js"></script>
+        <script src="../bower_components/moment/min/moment.min.js"></script>
+        <script src="../bower_components/underscore/underscore-min.js"></script>
+        <script src="../bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="../bower_components/angular/angular.min.js"></script>
+        <script src="../bower_components/angular-resource/angular-resource.min.js"></script>
+        <script src="../bower_components/angular-auto-validate/dist/jcs-auto-validate.min.js"></script>
+        <script src="../bower_components/angular-toArrayFilter/toArrayFilter.js"></script>
+        <script src="../bower_components/ladda/dist/spin.min.js"></script>
+        <script src="../bower_components/ladda/dist/ladda.min.js"></script>
+        <script src="../bower_components/angular-ladda/dist/angular-ladda.min.js"></script>
+        <script src="../js/ng-app/app.js"></script>
+        <script src="../js/ng-app/controllers.js"></script>
+        <script src="../js/ng-app/services.js"></script>
+        <script src="../js/ng-app/filters.js"></script>
+        <script src="../js/ng-app/directives.js"></script>
     </body>
 </html>

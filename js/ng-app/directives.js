@@ -29,4 +29,10 @@ app.directive('openSlotsTable', function () {
             restrict: 'E',
             templateUrl: '../../views/templates/schedule-button.html'
         };
+    })
+    .directive('navbar', function () {
+        return {
+            restrict: 'E',
+            templateUrl: '../../views/templates/navbar.html'
+        };
     });

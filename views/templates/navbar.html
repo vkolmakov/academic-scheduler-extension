@@ -1,0 +1,27 @@
+<div class="nav header-wrapper">
+    <div class="col-xs-6 form-inline">
+        <div class="form-group">
+            <select class="form-control"
+                    id="location"
+                    ng-model="formData.selectedLocation"
+                    ng-options="loc.location for loc in locations track by loc.location"
+                    ng-change="onLocationSelect()"
+                    required="required">
+            </select>
+        </div>
+        <div class="form-group">
+            <a ng-click="onLocationUpdate()"
+               style="color:white">
+                <i class="fa fa-refresh fa-lg"></i>
+            </a>
+        </div>
+    </div>
+    <div class="col-xs-offset-2 col-xs-4 form-inline">
+        <div class="checkbox-custom checkbox">
+            <label>
+                <input type="checkbox"
+                       ng-model="formData.isStudyGroup"> Click here to make a study group
+            </label>
+        </div>
+    </div>
+</div>
