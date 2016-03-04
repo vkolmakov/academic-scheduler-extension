@@ -131,9 +131,9 @@ app
                 return _.filter(tutorsList, function (tutor) {
                     // Define an object that will hold criterias that we use to filter out tutors
                     var criteria = {
-                        'notBusy': !_.contains(busyTutors[hour], tutor),
-                        'canTutorCourse': _.contains(settings.tutors[tutor], course.code) || _.contains(settings.tutors['Everyone'] ,course.code),
-                        'notRequestedOff': _.has(settings.daysOff, dateStr) ? !_.contains(settings.daysOff[dateStr], tutor) : true,
+                        notBusy: !_.contains(busyTutors[hour], tutor),
+                        canTutorCourse: _.contains(settings.tutors[tutor], course.code) || _.contains(settings.tutors['Everyone'] ,course.code),
+                        notRequestedOff: _.has(settings.daysOff, dateStr) ? !_.contains(settings.daysOff[dateStr], tutor) : true
                     };
                     // Finally, keeing selected tutor if all criterions are satisfied
                     return _.all(criteria, function (criterion) { return criterion; });
