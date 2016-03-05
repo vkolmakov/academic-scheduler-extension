@@ -149,15 +149,17 @@ app
                 // with keys as hours and lists of busy tutors as values
                 var busyTutors = {};
                 _.each(events, function (event) {
-                    var startDateTime = moment(event.start.dateTime);
-                    var hour = startDateTime.format('H');
-                    var minute = startDateTime.format('m');
-                    // Turning hour and minute into a string with decimal hour representation
-                    var time = (parseInt(hour) + parseInt(minute) / 60).toString();
+                    if (event) {
+                        var startDateTime = moment(event.start.dateTime);
+                        var hour = startDateTime.format('H');
+                        var minute = startDateTime.format('m');
+                        // Turning hour and minute into a string with decimal hour representation
+                        var time = (parseInt(hour) + parseInt(minute) / 60).toString();
 
-                    if (!_.has(busyTutors, time))
-                        busyTutors[time] = [];
-                    busyTutors[time].push(self.extractTutorName(event));
+                        if (!_.has(busyTutors, time))
+                            busyTutors[time] = [];
+                        busyTutors[time].push(self.extractTutorName(event));
+                    }
                 });
                 setBusyTutors(busyTutors);
             });
