@@ -170,14 +170,13 @@ app
             // given a google calendar event extracts name of tutor
             var mo = calendarService.appointmentRegex.exec(event.summary),
                 // strip any punctuation
-                rawName = mo ? mo[1].replace(/[\s\.\,]/, '').toLowerCase() : null,
+                rawName = mo ? mo[1].replace(/\W/g, '').toLowerCase() : null,
                 tutorName,
                 // set a min number of chars to match
                 accuracy = 2;
-            var normalizedTutorList = _.map(_.map(tutorList, _.clone), function (t) { return t.toLowerCase(); });
-
+            var normalizedTutorList = _.map(_.map(tutorList, _.clone), function (t) { return t.replace(/\W/g, '').toLowerCase(); });
             if (!rawName || _.contains(normalizedTutorList, rawName)) {
-                // direct match
+                // direct match or no match based on regex
                 tutorName = rawName;
             } else {
                 // check if at least two first letter match any tutor
@@ -191,7 +190,7 @@ app
 
     .service('calendarService', ['$http', function($http) {
         var self = this;
-        self.appointmentRegex = /(\w.+?)\(.+\)\s.*/;
+        self.appointmentRegex = /(\w.+?)\(.+?\).+/;
         self.calendarAPIBaseUrl = 'https://www.googleapis.com/calendar/v3/calendars/';
         self.recurrenceText = "RRULE:FREQ=WEEKLY;UNTIL=";
         self.timezone = 'America/Chicago';
