@@ -111,7 +111,7 @@ app
                 tutors = settings.schedule[weekday];
 
             // Filtering tutors, by first getting busy tutors
-            self.getBusyTutorsForDay(data, function(busyTutors) {
+            self.getBusyTutorsForDay(data, tutors, function(busyTutors) {
                 // Then by filtering out tutors by their ability to tutor the course and business
                 self.filterTutors(tutors, busyTutors, course, dateStr, settings, function (tutors) {
                     _.mapObject(tutors, function (tutorsList, hour) {
@@ -131,7 +131,7 @@ app
                 return _.filter(tutorsList, function (tutor) {
                     // Define an object that will hold criterias that we use to filter out tutors
                     var criteria = {
-                        notBusy: !_.contains(busyTutors[hour], tutor),
+                        notBusy: !_.contains(busyTutors[hour], tutor.toLowerCase()),
                         canTutorCourse: _.contains(settings.tutors[tutor], course.code) || _.contains(settings.tutors['Everyone'] ,course.code),
                         notRequestedOff: _.has(settings.daysOff, dateStr) ? !_.contains(settings.daysOff[dateStr], tutor) : true
                     };
@@ -143,38 +143,55 @@ app
             appendRandomTutor(filteredTutors);
         };
 
-        this.getBusyTutorsForDay = function (data, setBusyTutors) {
+        this.getBusyTutorsForDay = function (data, tutors, setBusyTutors) {
             calendarService.getAppointmentsForDay(data, function (events) {
                 // Go over every event, extract starting hour and tutor names and create a map
                 // with keys as hours and lists of busy tutors as values
                 var busyTutors = {};
                 _.each(events, function (event) {
-                    if (event) {
+                    if (event && event.status === 'confirmed') {
+                        console.log(event);
                         var startDateTime = moment(event.start.dateTime);
                         var hour = startDateTime.format('H');
                         var minute = startDateTime.format('m');
                         // Turning hour and minute into a string with decimal hour representation
                         var time = (parseInt(hour) + parseInt(minute) / 60).toString();
-
                         if (!_.has(busyTutors, time))
                             busyTutors[time] = [];
-                        busyTutors[time].push(self.extractTutorName(event));
+                        var tutorList = tutors[time];
+                        busyTutors[time].push(self.extractTutorName(event, tutorList));
                     }
                 });
                 setBusyTutors(busyTutors);
             });
         };
 
-        this.extractTutorName = function (event) {
+        this.extractTutorName = function (event, tutorList) {
             // given a google calendar event extracts name of tutor
-            var mo = calendarService.appointmentRegex.exec(event.summary);
-            return mo ? mo[1] : null;
+            var mo = calendarService.appointmentRegex.exec(event.summary),
+                // strip any punctuation
+                rawName = mo ? mo[1].replace(/[\s\.\,]/, '').toLowerCase() : null,
+                tutorName,
+                // set a min number of chars to match
+                accuracy = 2;
+            var normalizedTutorList = _.map(_.map(tutorList, _.clone), function (t) { return t.toLowerCase(); });
+
+            if (!rawName || _.contains(normalizedTutorList, rawName)) {
+                // direct match
+                tutorName = rawName;
+            } else {
+                // check if at least two first letter match any tutor
+                tutorName = _.find(normalizedTutorList, function (tutor) {
+                    return tutor.substring(0, accuracy) === rawName.substring(0, accuracy);
+                });
+            }
+            return tutorName || null;
         };
     }])
 
     .service('calendarService', ['$http', function($http) {
         var self = this;
-        self.appointmentRegex = /(\w+)\s.*\(.+\)\s.*/i;
+        self.appointmentRegex = /(\w.+?)\(.+\)\s.*/;
         self.calendarAPIBaseUrl = 'https://www.googleapis.com/calendar/v3/calendars/';
         self.recurrenceText = "RRULE:FREQ=WEEKLY;UNTIL=";
         self.timezone = 'America/Chicago';

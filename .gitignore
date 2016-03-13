@@ -2,3 +2,5 @@ manifest.json
 bower_components/*
 lib/*
 TAGS
+.tern-project
+.tern-port
