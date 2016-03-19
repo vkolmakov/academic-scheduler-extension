@@ -1,7 +1,8 @@
 <ul class="list-group">
     <li class="list-group-item hour-slots"
+        title="{{ tutors.length > 3 ? tutors.slice(1).join(', ') : ''}}"
         ng-repeat="(hour, tutors) in tutorslist">
-        {{ timetable[hour].display }}: {{ tutors.length != 0 ? (tutors.length > 1 ? tutors.slice(1).slice(0, 2).join(', ') + (tutors.length == 3 ? '.' : ', ...') : tutors.join() + '.') : 'No tutors' }}
+        {{ timetable[hour].display }}: {{ tutors.length != 0 ? (tutors.length > 1 ? tutors.slice(1).slice(0, 2).join(', ') + (tutors.length == 3 ? '' : ', ...') : tutors.join() + '') : 'No tutors' }}
         <span class="badge"
               ng-class="{
                         'open-slot-badge': tutors.length > 0, 'closed-slot-badge': tutors.length < 1

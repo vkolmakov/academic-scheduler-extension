@@ -150,7 +150,6 @@ app
                 var busyTutors = {};
                 _.each(events, function (event) {
                     if (event && event.status === 'confirmed') {
-                        console.log(event);
                         var startDateTime = moment(event.start.dateTime);
                         var hour = startDateTime.format('H');
                         var minute = startDateTime.format('m');
