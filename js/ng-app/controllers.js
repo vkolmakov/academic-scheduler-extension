@@ -1,25 +1,17 @@
-app.controller('MainController', ['$scope', 'locationService','calendarService', 'tutorService', 'settingsService', 'initialSetupService', function ($scope, locationService, calendarService, tutorService, settingsService, initialSetupService) {
+app.controller('MainController', ['$scope', 'locationService','calendarService', 'tutorService', 'settingsService', 'initialSetupService', 'formStatusService', function ($scope, locationService, calendarService, tutorService, settingsService, initialSetupService, formStatusService) {
+
     $scope.DEBUG = false;
     $scope.formData = {};
-    $scope.formStatus = {};
+    $scope.formStatus = formStatusService;
     $scope.locations = {};
     $scope.tutors = {};
 
-    $scope.messages = {
-        updatingSettings: 'Trying to update settings...',
-        noLocations: 'No locations are specified. You can set them up in the options menu.',
-        invalidLocations: 'Make sure every location has semester end date and calendar specified',
-        cantSetTutorEx: "Not enough data: can't set a tutor yet"
-    };
-
     $scope.onSubmit = function() {
-        $scope.formStatus.scheduling = true;
+        $scope.formStatus.setScheduling(true);
 
         calendarService.schedule($scope.formData, $scope.tutors, function(isScheduled) {
             $scope.tutors = {};
-            $scope.formStatus.scheduling = false;
-            $scope.formStatus.scheduled = isScheduled;
-            $scope.formStatus.errorOcurred = !isScheduled;
+            $scope.formStatus.onScheduled(isScheduled);
         });
     };
 
@@ -29,9 +21,8 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
     };
 
     $scope.onLocationUpdate = function () {
-        $scope.formStatus.setupError = true;
-        $scope.formStatus.errorMessage = $scope.messages.updatingSettings;
-
+        $scope.formStatus.setBlurForm(true);
+        $scope.formStatus.setErrorMessage($scope.formStatus.messages.updatingSettings);
         settingsService.refreshSettings($scope.formData.date, function () {
             $scope.onLocationSelect();
         });
@@ -56,8 +47,8 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
     };
 
     $scope.onError = function (errorMessage) {
-        $scope.formStatus.errorMessage = errorMessage;
-        $scope.formStatus.setupError = true;
+        $scope.formStatus.setErrorMessage(errorMessage);
+        $scope.formStatus.setBlurForm(true);
         $scope.$apply();
     };
 
@@ -66,7 +57,7 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
         try {
             $scope.formData.tutor = $scope.tutors[$scope.formData.time][0];
         } catch (e) {
-            console.log($scope.messages.cantSetTutorEx);
+            console.log($scope.formStatus.messages.cantSetTutorEx);
         }
     };
 
@@ -86,15 +77,12 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
         };
 
         $scope.tutors = {};
+        $scope.formStatus.resetForm();
+    };
 
-        $scope.formStatus = {
-            scheduled: false,
-            scheduling: false,
-            hasError: true,
-            errorOcurred: false,
-            setupError: $scope.formStatus.setupError || false,
-            errorMessage: $scope.formStatus.errorMessage || ''
-        };
+    $scope.sendFeedback = function () {
+        console.log('Sending feedback!');
+        // TODO: implement
     };
 
     // BAD-BAD-BAD-BADDDDD, needs refactioring
@@ -106,10 +94,10 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
             var isValidLocationObject = locationService.isValidLocation(locations);
 
             if (_.isEmpty(locations)) {
-                $scope.onError($scope.messages.noLocations);
+                $scope.onError($scope.formStatus.messages.noLocations);
                 return;
             } else if (!isValidLocationObject) {
-                $scope.onError($scope.messages.invalidLocations);
+                $scope.onError($scope.formStatus.messages.invalidLocations);
                 return;
             }
 
@@ -129,8 +117,8 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
                 $scope.settings = settings;
                 $scope.courses = settings.courses;
 
-                $scope.formStatus.setupError = false;
-                $scope.formStatus.errorMessage = '';
+                $scope.formStatus.setBlurForm(false);
+                $scope.formStatus.setErrorMessage('');
 
                 initialSetupService.getWebpageDate (function (initialDate) {
                     // grabbing data from currently open google calendar page which is stored in chrome local cache

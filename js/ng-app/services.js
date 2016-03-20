@@ -295,4 +295,46 @@ app
                 });
             });
         };
+    }])
+
+    .service('formStatusService', [function () {
+        var self = this;
+
+        self.messages = {
+            updatingSettings: 'Trying to update settings...',
+            noLocations: 'No locations are specified. You can set them up in the options menu.',
+            invalidLocations: 'Make sure every location has semester end date and calendar specified',
+            cantSetTutorEx: "Not enough data: can't set a tutor yet"
+        };
+
+        self.resetForm = function () {
+            self.scheduled =  false,
+            self.scheduling = false;
+            self.hasError = true;
+            self.schedulingErrorOcurred = false;
+            self.blurForm = false;
+            self.errorMessage = '';
+            self.sendingFeedback = false;
+        };
+
+        self.onScheduled = function (status) {
+            self.scheduling = false;
+            self.scheduled = status;
+            self.schedulingErrorOcurred = !status;
+        };
+
+        self.setScheduling = function (status) {
+            self.scheduling = status;
+        };
+
+        self.setBlurForm = function (status) {
+            self.blurForm = status;
+        };
+
+        self.setErrorMessage = function (message) {
+            self.errorMessage = message;
+        }
+
+
+
     }]);

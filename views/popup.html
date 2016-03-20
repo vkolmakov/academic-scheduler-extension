@@ -13,12 +13,14 @@
             <navbar></navbar>
 
             <div id="error-message"
-                 class="alert alert-danger"
-                 ng-show="formStatus.setupError"> <strong>{{ formStatus.errorMessage }}</strong>
+                 class="popup-field alert alert-danger"
+                 ng-show="formStatus.blurForm"> <strong>{{ formStatus.errorMessage }}</strong>
             </div>
 
+            <feedback-form></feedback-form>
+
             <div class="container container-form"
-                 ng-class="{'container-form-blocked':formStatus.setupError}">
+                 ng-class="{'container-form-blocked':formStatus.blurForm}">
 
                 <div class="col-xs-4 open-slots">
                     <open-slots-table tutorslist="tutors"
@@ -153,6 +155,7 @@
                 <pre>{{ time }}</pre>
             </div>
         </div>
+
         <script src="../bower_components/jquery/dist/jquery.min.js"></script>
         <script src="../bower_components/moment/min/moment.min.js"></script>
         <script src="../bower_components/underscore/underscore-min.js"></script>
