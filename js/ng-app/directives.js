@@ -35,4 +35,10 @@ app.directive('openSlotsTable', function () {
             restrict: 'E',
             templateUrl: '../../views/templates/navbar.html'
         };
+    })
+    .directive('feedbackForm', function () {
+        return {
+            restrict: 'E',
+            templateUrl: '../../views/templates/feedback-form.html'
+        };
     });
