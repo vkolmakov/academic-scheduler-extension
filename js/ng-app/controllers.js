@@ -1,11 +1,12 @@
 app.controller('MainController', ['$scope', 'locationService','calendarService', 'tutorService', 'settingsService', 'initialSetupService', 'formStatusService', function ($scope, locationService, calendarService, tutorService, settingsService, initialSetupService, formStatusService) {
 
     $scope.DEBUG = false;
-    $scope.formData = {};
     $scope.formStatus = formStatusService;
     $scope.locations = {};
     $scope.tutors = {};
+    $scope.formData = {};
 
+    // event listeners
     $scope.onSubmit = function() {
         $scope.formStatus.setScheduling(true);
 
@@ -21,15 +22,12 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
     };
 
     $scope.onLocationUpdate = function () {
-        $scope.formStatus.setBlurForm(true);
-        $scope.formStatus.setErrorMessage($scope.formStatus.messages.updatingSettings);
+        $scope.onError($scope.formStatus.messages.updatingSettings);
         settingsService.refreshSettings($scope.formData.date, function () {
             $scope.onLocationSelect();
         });
     };
 
-    // OK, but should be refactored
-    // event listeners
     $scope.onLocationSelect = function () {
         $scope.initialSetup(false);
     };
@@ -43,13 +41,16 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
 
     $scope.onCourseSelect = function () {
         $scope.getTutors();
-        $scope.professors = $scope.settings.professors[$scope.formData.course.code];
+        if (_.isObject($scope.formData.course)) {
+            $scope.professors = $scope.settings.professors[$scope.formData.course.code];
+        } else {
+            $scope.professors = [];
+        }
     };
 
     $scope.onError = function (errorMessage) {
-        $scope.formStatus.setErrorMessage(errorMessage);
-        $scope.formStatus.setBlurForm(true);
-        $scope.$apply();
+        // calling a service
+        $scope.formStatus.onError(errorMessage);
     };
 
     $scope.setTutors = function () {
@@ -82,13 +83,13 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
 
     $scope.sendFeedback = function () {
         console.log('Sending feedback!');
+        $scope.formStatus.setBlurForm(!$scope.formStatus.blurForm);
         // TODO: implement
     };
 
     // BAD-BAD-BAD-BADDDDD, needs refactioring
     $scope.initialSetup = function (onStartup) {
         $scope.settings = {};
-        $scope.resetForm();
         locationService.getLocations(function (locations) {
             // grabbing locations from chrome sync storage
             var isValidLocationObject = locationService.isValidLocation(locations);
@@ -114,15 +115,15 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
                     return;
                 }
                 // grabbing settings from from async api call and immediately setting courses
+                // and resetting current form state
+                $scope.formStatus.resetForm();
                 $scope.settings = settings;
                 $scope.courses = settings.courses;
-
-                $scope.formStatus.setBlurForm(false);
-                $scope.formStatus.setErrorMessage('');
 
                 initialSetupService.getWebpageDate (function (initialDate) {
                     // grabbing data from currently open google calendar page which is stored in chrome local cache
                     // Since date is stored as a string 'YYYY/MM/DD', convert it to a date object
+                    // if there is no date stored just grab today
                     var ymd = initialDate ? initialDate.split('/') : moment().format('YYYY/MM/DD').split('/');
 
                     $scope.formData.date = new Date(parseInt(ymd[0]), parseInt(ymd[1])-1, parseInt(ymd[2]));

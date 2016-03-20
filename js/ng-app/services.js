@@ -323,6 +323,11 @@ app
             self.schedulingErrorOcurred = !status;
         };
 
+        self.onError = function (errorMessage) {
+            self.errorMessage = errorMessage;
+            self.blurForm = true;
+        };
+
         self.setScheduling = function (status) {
             self.scheduling = status;
         };
@@ -330,11 +335,4 @@ app
         self.setBlurForm = function (status) {
             self.blurForm = status;
         };
-
-        self.setErrorMessage = function (message) {
-            self.errorMessage = message;
-        }
-
-
-
     }]);
