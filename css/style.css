@@ -48,7 +48,7 @@ select.form-control {
     -webkit-filter: blur(3px);
 }
 
-#error-message {
+.popup-field {
     position: absolute;
     z-index: 1000;
     margin: 25px;
@@ -57,59 +57,3 @@ select.form-control {
 .open-slots {
     padding: 0px !important;
 }
-
-/* tr.slot-unavailable { */
-/*     color: #DB6450; */
-/* } */
-
-/* tr.slot-available { */
-/*     color: #337AB7; */
-/* } */
-
-/* .header { */
-/*     display: -webkit-inline-box; */
-/* } */
-
-/* .group { */
-
-
-
-
-
-
-
-
-/*     background-color: #E6E6FA; */
-/* } */
-
-/* .blur { */
-/*     -webkit-filter: blur(3px); */
-/* } */
-
-/* .col-xs-3 { */
-/*     width: 20%; */
-/* } */
-
-/* .col-xs-9 { */
-/*     width: 80%; */
-/* } */
-
-/* .status-div { */
-/*     padding-right: 15px; */
-/* } */
-
-/* .status { */
-/*     padding-top: 12px; */
-/*     float: right; */
-/*     font-weight: bolder; */
-/*     color: #337AB7; */
-/* } */
-
-/* .status-error { */
-/*     color: #DB6450; */
-/* } */
-
-/* .btn { */
-/*     margin-bottom: 15px; */
-/*     margin-top: 10px; */
-/* } */
