@@ -17,8 +17,6 @@
                  ng-show="formStatus.blurForm"> <strong>{{ formStatus.errorMessage }}</strong>
             </div>
 
-            <feedback-form></feedback-form>
-
             <div class="container container-form"
                  ng-class="{'container-form-blocked':formStatus.blurForm}">
 
@@ -63,14 +61,6 @@
                                     </select>
                                 </form-field-inline>
 
-                                <form-field-inline field-name="professor">
-                                    <select class="form-control"
-                                            ng-model="formData.professor"
-                                            ng-options="p for p in professors | orderBy:'p'"
-                                            required="required">
-                                        <option value="">Select a professor</option>
-                                    </select>
-                                </form-field-inline>
                             </div>
 
                             <div class="column-wrapper col-xs-4">

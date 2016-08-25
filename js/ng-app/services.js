@@ -18,36 +18,49 @@ app
         };
     }])
 
-    .service('settingsService', ['$http', 'locationService', function ($http, locationService) {
+    .service('settingsService', ['$http', 'locationService', '$q', function ($http, locationService, $q) {
         var self = this;
+        this.getAuthToken = function() {
+            return $q(function (resolve, reject) {
+                chrome.storage.sync.get(null, function(values) {
+                    resolve(values.authToken);
+                });
+            });
+        };
+
+        this.tryGetCachedSettings = function(location) {
+            return $q(function (resolve, reject) {
+                chrome.storage.local.get(null, function (value) {
+                    resolve(value[location.location]);
+                });
+            })
+        };
 
         this.getSettings = function (location, setSettings) {
-            chrome.storage.local.get(location.location, function (value) {
-                if (_.isEmpty(value)) {
-                    $http({
+            var promises = $q.all([self.getAuthToken(), self.tryGetCachedSettings(location)]);
+            promises.then(function (results) {
+                var [authToken, cachedSettings] = results;
+                if (cachedSettings) {
+                    return cachedSettings;
+                } else {
+                    return $http({
                         method: 'GET',
                         url: location.url,
-                        params: {
-                            'location': location.location
+                        headers: {
+                            'Authorization': authToken
                         }
-                    }).then(function(response) {
-                        // TODO: Check if settings file has correct format
-                        value[location.location] = response.data;
-                        // caching settings
-                        chrome.storage.local.set(value);
-                        setSettings(response.data);
-                    }, function(error) {
-                        var errorMessage = {
-                            error: "Settings file is currently unavailable, please try again later."
-                        };
-                        setSettings(errorMessage);
-                    });
+                    })
                 }
-                else {
-                    // here, settings were found in local storage
-                    // so we just call back with them
-                    setSettings(value[Object.keys(value)[0]]);
-                    return;
+            }).then(function (possibleSettings) {
+                if (possibleSettings.status) {
+                    // this was an http request
+                    var settings = possibleSettings.data;
+                    chrome.storage.local.set({ [location.location]: settings });
+                    // ain't no payin' no technical debt here
+                    setSettings(settings);
+                } else {
+                    // this was cache hit
+                    setSettings(possibleSettings);
                 }
             });
         };
@@ -222,7 +235,6 @@ app
             // description includes student full name, contact and timestamp
             var description = [(data.isStudyGroup ? 'Students: ' : 'Student: ') + data.student.capitalize(),
                                'Contact: ' + data.contact.rewriteContact(),
-                               'Intstructor: ' + data.professor,
                                'Course: ' + data.course.name,
                                data.note ? 'Note: ' + data.note : null,
                                'Created on: ' + moment().format('ddd, MMM Do [at] h:mm a'),

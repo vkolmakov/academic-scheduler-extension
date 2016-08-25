@@ -9,22 +9,36 @@ var optionsModule = angular.module('academic-scheduler-options', [])
             });
         };
 
-        this.addNewLocation = function (locationName, updateLocations) {
-            chrome.storage.sync.get(null, function (items) {
-                if (_.isEmpty(items)) {
-                    items.locations = {};
-                }
+        this.getAuthToken = function(setAuthToken) {
+            chrome.storage.sync.get(null, function(items) {
+                setAuthToken(items.authToken);
+            });
+        };
 
-                if (!items.locations[locationName]) {
-                    items.locations[locationName] = {
-                        'location': locationName,
-                        'url': 'https://mathcenter.herokuapp.com/api/getExtensionSettings' // default link is hardcoded
+        this.addNewLocation = function (locationUrl, authToken, updateLocations) {
+            $http({
+                method: 'GET',
+                url: locationUrl,
+                headers: {
+                    'Authorization': authToken
+                }
+            }).then(function(result) {
+                chrome.storage.sync.get(null, function (items) {
+                    var newLocation = {
+                        'url': locationUrl,
+                        'location': result.data.location.name,
+                        'calendarID': result.data.location.calendarId
                     };
+
+                    if (_.isEmpty(items) || !_.has(items, 'locations')) {
+                        items.locations = {};
+                    }
+
+                    items.locations[result.data.location.name] = newLocation;
+                    items.authToken = authToken;
                     chrome.storage.sync.set(items); // save changes
                     updateLocations();
-                } else {
-                    console.log('Already exists!');
-                }
+                });
             });
         };
 
@@ -83,7 +97,7 @@ var optionsModule = angular.module('academic-scheduler-options', [])
                 $scope.isLocationSelected = false;
         });
 
-        $scope.newLocation = '';
+        $scope.newLocationUrl = '';
 
         $scope.isLocationSelected = true;
         $scope.isAddingNewLocation = false;
@@ -95,7 +109,16 @@ var optionsModule = angular.module('academic-scheduler-options', [])
             });
         };
 
+        $scope.getAuthToken = function () {
+            optionsService.getAuthToken(function (authToken) {
+                $scope.authToken = authToken;
+                $scope.$apply();
+            });
+        };
+
         $scope.getLocations();
+        $scope.getAuthToken();
+
         optionsService.getCalendars(function (calendars) {
             $scope.calendars = calendars;
         });
@@ -110,7 +133,7 @@ var optionsModule = angular.module('academic-scheduler-options', [])
         };
 
         $scope.addNewLocation = function () {
-            optionsService.addNewLocation ($scope.newLocation, $scope.getLocations);
+            optionsService.addNewLocation ($scope.newLocationUrl, $scope.authToken, $scope.getLocations);
             $scope.isAddingNewLocation = !($scope.isAddingNewLocation);
         };
 

@@ -41,11 +41,6 @@ app.controller('MainController', ['$scope', 'locationService','calendarService',
 
     $scope.onCourseSelect = function () {
         $scope.getTutors();
-        if (_.isObject($scope.formData.course)) {
-            $scope.professors = $scope.settings.professors[$scope.formData.course.code];
-        } else {
-            $scope.professors = [];
-        }
     };
 
     $scope.onError = function (errorMessage) {
